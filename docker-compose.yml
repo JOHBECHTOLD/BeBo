@@ -1,5 +1,4 @@
 services:
-  # Der Container für unsere Box-App
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
@@ -9,22 +8,18 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    environment:
-      - DEBUG=1
-      - DB_NAME=boxdb
-      - DB_USER=boxuser
-      - DB_PASSWORD=geheim
-      - DB_HOST=db
+    env_file:
+      - .env
 
-  # Die Datenbank
   db:
     image: postgres:15-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=boxdb
-      - POSTGRES_USER=boxuser
-      - POSTGRES_PASSWORD=geheim
+      - POSTGRES_DB=bebo_db
+      - POSTGRES_USER=bebo_user
+      - POSTGRES_PASSWORD=bebo_password
+    restart: always
 
 volumes:
   postgres_data:
