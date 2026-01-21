@@ -1,0 +1,6 @@
+Django>=5.0,<6.0
+psycopg2-binary>=2.9  # Für PostgreSQL Verbindung
+Pillow>=10.0          # Für Bildverarbeitung
+django-simple-history # Für das Logging der Änderungen
+gunicorn              # Webserver für später
+python-decouple       # Um Passwörter aus dem Code fernzuhalten
