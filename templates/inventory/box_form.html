@@ -5,10 +5,22 @@
     <div class="col-lg-8">
         
         <div class="d-flex align-items-center mb-4">
-            <a href="{% url 'box_detail' box.label %}" class="btn btn-outline-secondary me-3">
-                <i class="bi bi-arrow-left"></i> Abbrechen
-            </a>
-            <h1 class="h3 mb-0 text-bebo">Box bearbeiten</h1>
+            <!-- Unterscheidung: Hat die Box schon eine ID in der Datenbank? -->
+            {% if box.pk %}
+                <!-- JA: Bearbeiten Modus -> Abbrechen verwirft Eingabe und geht zur Detailansicht zurück -->
+                <!-- Wir nutzen hier 'box.pk' statt label, weil das Label durch die Falscheingabe "schmutzig" sein könnte -->
+                <!-- Dazu müssen wir gleich kurz die urls.py anpassen, damit PK auch geht, ODER wir tricksen im View (siehe Schritt 2) -->
+                <a href="{% url 'box_detail' box.label %}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Abbrechen
+                </a>
+            {% else %}
+                <!-- NEIN: Neu anlegen Modus -> Abbrechen geht zum Dashboard -->
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Abbrechen
+                </a>
+            {% endif %}
+            
+            <h1 class="h3 mb-0 text-bebo">{{ title|default:"Box bearbeiten" }}</h1>
         </div>
 
         <div class="card shadow-sm">

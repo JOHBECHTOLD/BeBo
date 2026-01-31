@@ -21,6 +21,7 @@ def box_detail(request, label):
     })
 def box_edit(request, label):
     box = get_object_or_404(Box, label=label)
+    original_label = box.label
     
     if request.method == 'POST':
         # Wenn Daten gesendet wurden (Speichern Button gedrückt)
@@ -39,8 +40,32 @@ def box_edit(request, label):
     else:
         # Wenn die Seite nur aufgerufen wird -> Formular anzeigen
         form = BoxForm(instance=box)
+
+    # TRICK: Falls das Formular Fehler hat (z.B. falsche Prüfziffer), hat das 'box' Objekt
+    # im Speicher jetzt den falschen Code. Wir setzen es für die Anzeige auf das Original zurück.
+    # Das Formularfeld selbst zeigt trotzdem die (falsche) Eingabe des Users an (via 'form'), 
+    # damit er sie korrigieren kann. Aber der 'Abbrechen'-Link stimmt wieder!
+    box.label = original_label 
     
     return render(request, 'inventory/box_form.html', {
         'form': form,
         'box': box
+    })
+# NEU: Neue Box anlegen
+def box_new(request):
+    if request.method == 'POST':
+        form = BoxForm(request.POST, request.FILES)
+        if form.is_valid():
+            box = form.save()
+            # Falls direkt beim Erstellen ein Bild hochgeladen wurde:
+            image = form.cleaned_data.get('image_upload')
+            if image:
+                BoxImage.objects.create(box=box, image=image)
+            return redirect('box_detail', label=box.label)
+    else:
+        form = BoxForm()
+
+    return render(request, 'inventory/box_form.html', {
+        'form': form,
+        'title': 'Neue Box anlegen' # Wir übergeben einen Titel für die Seite
     })
