@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BeBo - Bechtold Box</title>
+    
+    <!-- Script zum Erkennen des System-Dark-Modes (muss vor CSS laufen um Flackern zu verhindern) -->
+    <script>
+      (() => {
+        const getPreferredTheme = () => {
+          return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.setAttribute('data-bs-theme', getPreferredTheme())
+        
+        // Lauschen auf Änderungen in den Systemeinstellungen
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+          document.documentElement.setAttribute('data-bs-theme', getPreferredTheme())
+        })
+      })()
+    </script>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* BeBo Farben Logik */
+        :root {
+            --bebo-blue: #203564;     /* Das Original BeBo Blau */
+            --bebo-light: #eef1f6;    /* Ein sehr helles Blau für Hintergründe */
+        }
+
+        /* Im hellen Modus: Text ist dunkelblau */
+        [data-bs-theme="light"] {
+            --bebo-text: #203564;
+            --bebo-bg-subtle: #f8f9fa;
+        }
+
+        /* Im dunklen Modus: Text ist hellgrau/weiß, damit man ihn lesen kann */
+        [data-bs-theme="dark"] {
+            --bebo-text: #dee2e6;
+            --bebo-bg-subtle: #212529;
+            /* Wir hellen das Blau für Buttons im Darkmode minimal auf, damit der Kontrast stimmt */
+            --bebo-blue: #2c447a; 
+        }
+
+        .bg-bebo {
+            background-color: #203564 !important; /* Navbar bleibt immer dunkelblau */
+        }
+        
+        /* Überschriften passen sich an (Dunkelblau im Hellen, Weiß im Dunklen) */
+        .text-bebo {
+            color: var(--bebo-text) !important;
+        }
+
+        .btn-bebo {
+            background-color: var(--bebo-blue);
+            border-color: var(--bebo-blue);
+            color: white;
+        }
+        .btn-bebo:hover {
+            background-color: #1a2b50;
+            border-color: #1a2b50;
+            color: white;
+        }
+    </style>
+  </head>
+  <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-bebo mb-4">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="/">
+            <i class="bi bi-box-seam"></i> BeBo
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Übersicht</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin">Admin</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hauptinhalt -->
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

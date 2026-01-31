@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'box_detail' box.label %}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i> Abbrechen
+            </a>
+            <h1 class="h3 mb-0 text-bebo">Box bearbeiten</h1>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <!-- WICHTIG: enctype="multipart/form-data" ist nötig für Bild-Uploads -->
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Fehler anzeigen, falls vorhanden -->
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            Bitte korrigiere die Fehler unten.
+                        </div>
+                    {% endif %}
+
+                    <!-- Die Formularfelder -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Barcode</label>
+                        {{ form.label }}
+                        {% if form.label.errors %}
+                            <div class="text-danger small">{{ form.label.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Lagerort</label>
+                            {{ form.location }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Status</label>
+                            {{ form.status }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Beschreibung / Inhalt</label>
+                        {{ form.description }}
+                        <div class="form-text">Was ist drin? (Stichworte reichen)</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Bild hinzufügen (Optional)</label>
+                        {{ form.image_upload }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kategorien (Mehrfachauswahl mit STRG)</label>
+                        {{ form.categories }}
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-bebo btn-lg">
+                            <i class="bi bi-save"></i> Speichern
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

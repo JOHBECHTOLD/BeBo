@@ -124,6 +124,19 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Wo liegen die HTML-Dateien?
+import os
+TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
+
+# Wo werden hochgeladene Bilder gespeichert?
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Wo liegen statische Dateien (CSS, JS)?
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

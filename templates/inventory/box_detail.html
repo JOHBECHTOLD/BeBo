@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Header Bereich -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted mb-1 d-block">
+            <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+        </a>
+        <h1 class="h2 text-bebo font-monospace">{{ box.label }}</h1>
+    </div>
+    <div>
+        <a href="{% url 'box_edit' box.label %}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil"></i> Bearbeiten
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Linke Spalte: Hauptinfos -->
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-transparent border-bottom-0 pt-3">
+                <ul class="nav nav-tabs card-header-tabs" id="boxTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active text-bebo" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button">Info</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link text-bebo" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button">Verlauf</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="boxTabContent">                 
+                    <!-- TAB 1: Infos -->
+                    <div class="tab-pane fade show active" id="info">
+                        <h5 class="card-title mt-2">{{ box.location.name }}</h5>
+                        
+                        <div class="mb-3">
+                            {% if box.status == 'STORED' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Gelagert</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">{{ box.get_status_display }}</span>
+                            {% endif %}
+                            
+                            {% for cat in box.categories.all %}
+                                <span class="badge" style="background-color: {{ cat.color }}">{{ cat.name }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <p class="card-text lead fs-6">
+                            {{ box.description|default:"Keine Beschreibung hinterlegt."|linebreaks }}
+                        </p>
+                    </div>
+
+                    <!-- TAB 2: Verlauf (Audit Log) -->
+                    <div class="tab-pane fade" id="history">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Wann</th>
+                                        <th>Wer</th>
+                                        <th>Was</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for h in box.history.all %}
+                                    <tr>
+                                        <td>{{ h.history_date|date:"d.m.Y H:i" }}</td>
+                                        <td>{{ h.history_user|default:"System" }}</td>
+                                        <td>
+                                            {% if h.history_type == '+' %}Erstellt
+                                            {% elif h.history_type == '-' %}Gelöscht
+                                            {% else %}Geändert{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="3">Keine Änderungen protokolliert.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rechte Spalte: Bilder (Platzhalter Logik) -->
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-bold text-bebo">
+                Bilder
+            </div>
+                        <div class="card-body text-center p-3">
+                {% if box.images.exists %}
+                    <!-- Karussell für Bilder (Bootstrap Carousel) -->
+                    <div id="boxImagesCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+                        <div class="carousel-inner rounded shadow-sm">
+                            {% for img in box.images.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <!-- Das Bild wird angezeigt -->
+                                <img src="{{ img.image.url }}" class="d-block w-100" style="object-fit: cover; height: 300px;" alt="Box Inhalt">
+                                <div class="carousel-caption d-none d-md-block p-1 bg-dark bg-opacity-50 rounded-bottom">
+                                    <small>{{ img.uploaded_at|date:"d.m.Y" }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if box.images.count > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#boxImagesCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Zurück</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#boxImagesCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Weiter</span>
+                        </button>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <!-- Wenn kein Bild da ist -->
+                    <div class="py-5 bg-light rounded mb-3 border border-dashed">
+                        <i class="bi bi-camera fs-1 text-muted opacity-25"></i>
+                        <p class="text-muted small mt-2 mb-0">Keine Bilder vorhanden.</p>
+                    </div>
+                {% endif %}
+                
+                <!-- Der Upload Button führt jetzt direkt zum Bearbeiten-Modus -->
+                <a href="{% url 'box_edit' box.label %}" class="btn btn-sm btn-outline-secondary w-100">
+                    <i class="bi bi-upload"></i> Foto hochladen / Bearbeiten
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
