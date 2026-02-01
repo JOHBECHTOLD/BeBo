@@ -168,16 +168,22 @@
                 if (html5QrcodeScanner === null) {
                     
                     const config = { 
-                        fps: 10,    // 10 Bilder pro Sekunde reichen, das macht den Autofokus ruhiger
-                        // Wir machen das Scan-Fenster breiter (wie ein Barcode), statt quadratisch
+                        fps: 10,
                         qrbox: {width: 280, height: 100},
                         aspect: 1.0,
+                        // VERSUCH: Bessere Kamera-Auflösung anfordern (HD)
+                        videoConstraints: {
+                            facingMode: "environment",
+                            width: { min: 640, ideal: 1280, max: 1920 },
+                            height: { min: 480, ideal: 720, max: 1080 },
+                        },
                         experimentalFeatures: {
                             useBarCodeDetectorIfSupported: true
                         },
-                        // WICHTIG: Nur noch Code 128 (Deine Etiketten) und QR zulassen!
+                        // Wir erlauben Code 128 UND Code 39 (sie sehen ähnlich aus)
                         formatsToSupport: [ 
                             Html5QrcodeSupportedFormats.CODE_128, 
+                            Html5QrcodeSupportedFormats.CODE_39,
                             Html5QrcodeSupportedFormats.QR_CODE 
                         ]
                     };
@@ -235,7 +241,7 @@
   <!-- Footer -->
   <footer class="py-4 mt-5 border-top">
       <div class="container text-center text-muted small">
-          <p class="mb-1">&copy; {% now "Y" %} Johannes Bechtold &bull; BeBo v1.2</p>
+          <p class="mb-1">&copy; {% now "Y" %} Johannes Bechtold &bull; BeBo v{{ bebo_version }}</p></p>
           <!-- Änderung: Text angepasst -->
           <p class="mb-0">Made with <i class="bi bi-heart-fill text-danger"></i> for tidiness</p>
        </div>
