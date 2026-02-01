@@ -164,71 +164,73 @@
             const modal = new bootstrap.Modal(document.getElementById('scannerModal'));
             modal.show();
 
-            // Scanner initialisieren, wenn Modal gezeigt wird
             document.getElementById('scannerModal').addEventListener('shown.bs.modal', function () {
                 if (html5QrcodeScanner === null) {
+                    
                     const config = { 
-                        fps: 20,    // Schneller scannen
-                        qrbox: {width: 250, height: 150},
+                        fps: 10,    // 10 Bilder pro Sekunde reichen, das macht den Autofokus ruhiger
+                        // Wir machen das Scan-Fenster breiter (wie ein Barcode), statt quadratisch
+                        qrbox: {width: 280, height: 100},
                         aspect: 1.0,
-                        // Versuche native Browser-Features zu nutzen (viel schneller auf Android/Chrome)
                         experimentalFeatures: {
                             useBarCodeDetectorIfSupported: true
                         },
-                        // Wir aktivieren ALLES was geht
+                        // WICHTIG: Nur noch Code 128 (Deine Etiketten) und QR zulassen!
                         formatsToSupport: [ 
-                            Html5QrcodeSupportedFormats.QR_CODE,
-                            Html5QrcodeSupportedFormats.CODE_128,
-                            Html5QrcodeSupportedFormats.CODE_39,
-                            Html5QrcodeSupportedFormats.CODE_93,
-                            Html5QrcodeSupportedFormats.EAN_13,
-                            Html5QrcodeSupportedFormats.EAN_8,
-                            Html5QrcodeSupportedFormats.ITF,    // WICHTIG für Kartons!
-                            Html5QrcodeSupportedFormats.UPC_A,
-                            Html5QrcodeSupportedFormats.UPC_E,
-                            Html5QrcodeSupportedFormats.CODABAR,
-                            Html5QrcodeSupportedFormats.RSS_14,
-                            Html5QrcodeSupportedFormats.RSS_EXPANDED
+                            Html5QrcodeSupportedFormats.CODE_128, 
+                            Html5QrcodeSupportedFormats.QR_CODE 
                         ]
                     };
-                    html5QrcodeScanner = new Html5QrcodeScanner("reader", config);
+
+                    html5QrcodeScanner = new Html5QrcodeScanner("reader", config, false);
                     
                     html5QrcodeScanner.render((decodedText, decodedResult) => {
-                        // Erfolgreicher Scan!
-                        console.log(`Code scanned = ${decodedText}`);
+                        console.log(`Raw scan: ${decodedText}`);
                         
-                        // Text in das Ziel-Feld schreiben
-                        const inputField = document.getElementById(targetInputId);
-                        if(inputField) {
-                            inputField.value = decodedText;
-                        }
-                        
-                        // Scanner stoppen und Modal schließen
-                        html5QrcodeScanner.clear();
-                        html5QrcodeScanner = null;
-                        
-                        // Schließen Button simulieren
-                        const closeBtn = document.querySelector('#scannerModal .btn-close');
-                        closeBtn.click();
+                        // --- FILTER LOGIK ---
+                        // Wir bereinigen den Text (manchmal lesen Scanner "." als Leerzeichen oder anders)
+                        let cleanText = decodedText.trim();
 
-                        // Falls es die Suche ist, automatisch absenden? (Optional)
-                        // if(targetInputId === 'searchInput') document.forms[0].submit();
+                        // Wir akzeptieren den Scan NUR, wenn er mit "94" beginnt
+                        // Das filtert alle Fehl-Scans (Müslipackungen, Buchrücken, Schatten) raus.
+                        if (cleanText.startsWith("94")) {
+                            
+                            // Treffer!
+                            const inputField = document.getElementById(targetInputId);
+                            if(inputField) {
+                                inputField.value = cleanText;
+                            }
+                            
+                            // Erfolgston oder Vibration (optional, unterstützen manche Browser)
+                            if (window.navigator && window.navigator.vibrate) {
+                                window.navigator.vibrate(200);
+                            }
+
+                            // Scanner schließen
+                            html5QrcodeScanner.clear();
+                            html5QrcodeScanner = null;
+                            const closeBtn = document.querySelector('#scannerModal .btn-close');
+                            closeBtn.click();
+                            
+                        } else {
+                            console.log("Scan ignoriert (Kein 94er Code): " + cleanText);
+                            // Wir machen NICHTS -> Der Scanner läuft einfach weiter, bis er was Richtiges findet.
+                        }
 
                     }, (errorMessage) => {
-                        // Fehler beim Scannen (passiert oft, ignorieren wir)
+                        // Fehler ignorieren
                     });
                 }
             });
         }
 
-        // Scanner stoppen, wenn Modal geschlossen wird
         document.getElementById('scannerModal').addEventListener('hidden.bs.modal', function () {
             if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear();
+                html5QrcodeScanner.clear().catch(error => { console.error("Failed to clear", error); });
                 html5QrcodeScanner = null;
             }
         });
-    </script>  
+    </script>
 </body>
   <!-- Footer -->
   <footer class="py-4 mt-5 border-top">

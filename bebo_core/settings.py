@@ -152,4 +152,4 @@ LOGOUT_REDIRECT_URL = 'login'    # Wohin nach dem Logout?
 
 
 # Versionierung
-BEBO_VERSION = '1.3.0'
+BEBO_VERSION = '1.3.1'
