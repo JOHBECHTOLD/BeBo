@@ -136,11 +136,104 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
+    <!-- HTML5-QRCode Bibliothek -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+        <!-- Scanner Modal -->
+    <div class="modal fade" id="scannerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-upc-scan"></i> Barcode scannen</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="reader" style="width: 100%;"></div>
+                    <p class="text-muted small mt-2">Kamera auf den Code richten</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner Logik -->
+    <script>
+        let html5QrcodeScanner = null;
+        let targetInputId = null;
+
+        function startScanner(inputId) {
+            targetInputId = inputId;
+            const modal = new bootstrap.Modal(document.getElementById('scannerModal'));
+            modal.show();
+
+            // Scanner initialisieren, wenn Modal gezeigt wird
+            document.getElementById('scannerModal').addEventListener('shown.bs.modal', function () {
+                if (html5QrcodeScanner === null) {
+                    const config = { 
+                        fps: 20,    // Schneller scannen
+                        qrbox: {width: 250, height: 150},
+                        aspect: 1.0,
+                        // Versuche native Browser-Features zu nutzen (viel schneller auf Android/Chrome)
+                        experimentalFeatures: {
+                            useBarCodeDetectorIfSupported: true
+                        },
+                        // Wir aktivieren ALLES was geht
+                        formatsToSupport: [ 
+                            Html5QrcodeSupportedFormats.QR_CODE,
+                            Html5QrcodeSupportedFormats.CODE_128,
+                            Html5QrcodeSupportedFormats.CODE_39,
+                            Html5QrcodeSupportedFormats.CODE_93,
+                            Html5QrcodeSupportedFormats.EAN_13,
+                            Html5QrcodeSupportedFormats.EAN_8,
+                            Html5QrcodeSupportedFormats.ITF,    // WICHTIG für Kartons!
+                            Html5QrcodeSupportedFormats.UPC_A,
+                            Html5QrcodeSupportedFormats.UPC_E,
+                            Html5QrcodeSupportedFormats.CODABAR,
+                            Html5QrcodeSupportedFormats.RSS_14,
+                            Html5QrcodeSupportedFormats.RSS_EXPANDED
+                        ]
+                    };
+                    html5QrcodeScanner = new Html5QrcodeScanner("reader", config);
+                    
+                    html5QrcodeScanner.render((decodedText, decodedResult) => {
+                        // Erfolgreicher Scan!
+                        console.log(`Code scanned = ${decodedText}`);
+                        
+                        // Text in das Ziel-Feld schreiben
+                        const inputField = document.getElementById(targetInputId);
+                        if(inputField) {
+                            inputField.value = decodedText;
+                        }
+                        
+                        // Scanner stoppen und Modal schließen
+                        html5QrcodeScanner.clear();
+                        html5QrcodeScanner = null;
+                        
+                        // Schließen Button simulieren
+                        const closeBtn = document.querySelector('#scannerModal .btn-close');
+                        closeBtn.click();
+
+                        // Falls es die Suche ist, automatisch absenden? (Optional)
+                        // if(targetInputId === 'searchInput') document.forms[0].submit();
+
+                    }, (errorMessage) => {
+                        // Fehler beim Scannen (passiert oft, ignorieren wir)
+                    });
+                }
+            });
+        }
+
+        // Scanner stoppen, wenn Modal geschlossen wird
+        document.getElementById('scannerModal').addEventListener('hidden.bs.modal', function () {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }
+        });
+    </script>  
+</body>
   <!-- Footer -->
   <footer class="py-4 mt-5 border-top">
       <div class="container text-center text-muted small">
-          <p class="mb-1">&copy; {% now "Y" %} Familie Bechtold &bull; BeBo v1.2</p>
+          <p class="mb-1">&copy; {% now "Y" %} Johannes Bechtold &bull; BeBo v1.2</p>
           <!-- Änderung: Text angepasst -->
           <p class="mb-0">Made with <i class="bi bi-heart-fill text-danger"></i> for tidiness</p>
        </div>

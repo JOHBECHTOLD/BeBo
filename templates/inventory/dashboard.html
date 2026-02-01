@@ -13,10 +13,21 @@
 <!-- Suchfeld -->
 <div class="card mb-4 shadow-sm">
     <div class="card-body p-2">
-        <div class="input-group">
-            <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control border-0 shadow-none" placeholder="Suche nach Inhalt, Nummer oder Ort...">
-        </div>
+            <div class="input-group">
+                <button type="submit" class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></button>
+                
+                <!-- WICHTIG: id="searchInput" hinzugefügt -->
+                <input type="text" id="searchInput" name="q" value="{{ search_query|default:'' }}" class="form-control border-0 shadow-none" placeholder="Suche nach Inhalt, Nummer oder Ort...">
+                
+                <!-- NEU: Scan Button -->
+                <button type="button" class="btn btn-link text-decoration-none text-bebo" onclick="startScanner('searchInput')">
+                    <i class="bi bi-upc-scan"></i>
+                </button>
+
+                {% if search_query %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-link text-decoration-none text-muted"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
     </div>
 </div>
 
