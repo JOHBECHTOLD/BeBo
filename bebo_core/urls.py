@@ -6,6 +6,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('inventory.urls')), # Wir leiten die Startseite auf unsere App um
+    # Djangos eingebaute Auth-URLs (Login, Logout, PasswordChange...)
+    # Wir nutzen "accounts/" als Standard-Pfad
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 # Im Debug-Modus Bilder ausliefern

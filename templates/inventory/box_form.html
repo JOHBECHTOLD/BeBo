@@ -76,6 +76,11 @@
                         <button type="submit" class="btn btn-bebo btn-lg">
                             <i class="bi bi-save"></i> Speichern
                         </button>
+                        
+                        <!-- NEU: Löschen Button -->
+                        <a href="{% url 'box_delete' box.label %}" class="btn btn-outline-danger mt-3">
+                            <i class="bi bi-trash"></i> Box löschen
+                        </a>
                     </div>
                 </form>
             </div>

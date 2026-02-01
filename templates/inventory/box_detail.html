@@ -39,7 +39,10 @@
                         <div class="mb-3">
                             {% if box.status == 'STORED' %}
                                 <span class="badge bg-success"><i class="bi bi-check-circle"></i> Gelagert</span>
-                            {% else %}
+                            {% elif box.status == 'ACCESS' %}
+                                <!-- NEU: Auch hier grün anzeigen -->
+                                <span class="badge bg-success"><i class="bi bi-hand-index-thumb"></i> Im Zugriff</span>
+                                {% else %}
                                 <span class="badge bg-warning text-dark">{{ box.get_status_display }}</span>
                             {% endif %}
                             

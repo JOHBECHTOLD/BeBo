@@ -73,6 +73,7 @@ class Category(models.Model):
 class Box(models.Model):
     STATUS_CHOICES = [
         ('STORED', 'Gelagert'),
+        ('ACCESS', 'Im Zugriff'),
         ('TRANSIT', 'Im Transit'),
         ('LENT', 'Verliehen'),
         ('LOST', 'Verloren/Unbekannt'),

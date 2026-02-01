@@ -33,6 +33,9 @@
                     <span class="badge bg-bebo font-monospace">{{ box.label }}</span>
                     {% if box.status == 'STORED' %}
                         <span class="badge bg-success"><i class="bi bi-check-circle"></i> Gelagert</span>
+                    {% elif box.status == 'ACCESS' %}
+                        <!-- NEU: Grün und anderes Icon -->
+                        <span class="badge bg-success"><i class="bi bi-hand-index-thumb"></i> Im Zugriff</span>
                     {% else %}
                         <span class="badge bg-warning text-dark">{{ box.get_status_display }}</span>
                     {% endif %}

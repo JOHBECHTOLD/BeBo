@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from .models import Box, BoxImage
 from .forms import BoxForm
 
+@login_required
 def dashboard(request):
     # Hole alle Boxen, sortiert nach Update-Datum (neueste zuerst)
     boxes = Box.objects.all().order_by('-updated_at')
@@ -10,7 +12,7 @@ def dashboard(request):
         'boxes': boxes,
         'total_count': boxes.count()
     })
-
+@login_required
 def box_detail(request, label):
     # Wir suchen die Box anhand des Barcodes (label). 
     # Wenn sie nicht existiert, kommt automatisch Fehler 404 (Seite nicht gefunden).
@@ -19,6 +21,7 @@ def box_detail(request, label):
     return render(request, 'inventory/box_detail.html', {
         'box': box,
     })
+@login_required
 def box_edit(request, label):
     box = get_object_or_404(Box, label=label)
     original_label = box.label
@@ -52,6 +55,7 @@ def box_edit(request, label):
         'box': box
     })
 # NEU: Neue Box anlegen
+@login_required
 def box_new(request):
     if request.method == 'POST':
         form = BoxForm(request.POST, request.FILES)
@@ -69,3 +73,16 @@ def box_new(request):
         'form': form,
         'title': 'Neue Box anlegen' # Wir übergeben einen Titel für die Seite
     })
+# NEU: Box löschen
+@login_required
+def box_delete(request, label):
+    box = get_object_or_404(Box, label=label)
+    
+    if request.method == 'POST':
+        # Wenn der rote Knopf "Bestätigen" gedrückt wurde
+        box.delete()
+        # Bilder werden automatisch mitgelöscht (wegen on_delete=CASCADE im Model)
+        return redirect('dashboard')
+    
+    # Zeige die Bestätigungsseite an
+    return render(request, 'inventory/box_confirm_delete.html', {'box': box})

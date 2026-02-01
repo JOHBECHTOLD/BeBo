@@ -6,4 +6,5 @@ urlpatterns = [
     path('box/new/', views.box_new, name='box_new'),
     path('box/<str:label>/', views.box_detail, name='box_detail'),
     path('box/<str:label>/edit/', views.box_edit, name='box_edit'),
+    path('box/<str:label>/delete/', views.box_delete, name='box_delete'),
 ]

@@ -27,6 +27,8 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
+# Liest die vertrauenswürdigen HTTPS-Domains aus der .env Datei
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
@@ -141,3 +143,7 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Login & Logout Konfiguration
+LOGIN_URL = 'login'            # Name der URL für den Login
+LOGIN_REDIRECT_URL = 'dashboard' # Wohin nach dem Login?
+LOGOUT_REDIRECT_URL = 'login'    # Wohin nach dem Logout?
