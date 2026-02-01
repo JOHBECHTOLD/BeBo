@@ -4,3 +4,4 @@ Pillow>=10.0          # Für Bildverarbeitung
 django-simple-history # Für das Logging der Änderungen
 gunicorn              # Webserver für später
 python-decouple       # Um Passwörter aus dem Code fernzuhalten
+whitenoise>=6.0
