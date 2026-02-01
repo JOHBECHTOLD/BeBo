@@ -86,3 +86,14 @@ def box_delete(request, label):
     
     # Zeige die Bestätigungsseite an
     return render(request, 'inventory/box_confirm_delete.html', {'box': box})
+# NEU: Einzelnes Bild löschen
+@login_required
+def image_delete(request, image_id):
+    image = get_object_or_404(BoxImage, id=image_id)
+    box_label = image.box.label # Wir merken uns, zu welcher Box es gehört
+    
+    # Löschen
+    image.delete()
+    
+    # Zurück zur Bearbeiten-Seite der Box
+    return redirect('box_edit', label=box_label)

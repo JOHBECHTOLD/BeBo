@@ -149,3 +149,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'            # Name der URL für den Login
 LOGIN_REDIRECT_URL = 'dashboard' # Wohin nach dem Login?
 LOGOUT_REDIRECT_URL = 'login'    # Wohin nach dem Logout?
+
+
+# Versionierung
+BEBO_VERSION = '1.2.0'
