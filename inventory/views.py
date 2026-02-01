@@ -2,15 +2,29 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Box, BoxImage
 from .forms import BoxForm
+from django.db.models import Q
 
 @login_required
 def dashboard(request):
-    # Hole alle Boxen, sortiert nach Update-Datum (neueste zuerst)
+    # 1. Suchbegriff aus der URL holen (z.B. ?q=Weihnachten)
+    query = request.GET.get('q')
+    
+    # 2. Basis: Erstmal alle Boxen nehmen
     boxes = Box.objects.all().order_by('-updated_at')
     
+    # 3. Wenn gesucht wurde, filtern wir die Liste
+    if query:
+        boxes = boxes.filter(
+            Q(label__icontains=query) |              # Suche im Barcode
+            Q(description__icontains=query) |        # Suche in Beschreibung
+            Q(location__name__icontains=query) |     # Suche im Lagerort-Namen
+            Q(categories__name__icontains=query)     # Suche in Kategorien
+        ).distinct() # distinct verhindert Duplikate, falls mehrere Kategorien treffen
+
     return render(request, 'inventory/dashboard.html', {
         'boxes': boxes,
-        'total_count': boxes.count()
+        'total_count': boxes.count(), # Zählt jetzt nur die gefundenen Boxen
+        'search_query': query         # Damit das Suchfeld gefüllt bleibt
     })
 @login_required
 def box_detail(request, label):

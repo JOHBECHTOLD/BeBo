@@ -6,7 +6,7 @@ class BoxForm(forms.ModelForm):
     image_upload = forms.ImageField(
         required=False, 
         label="Neues Bild hinzufügen",
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control'})
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control','accept': 'image/*'})
     )
 
     class Meta:
