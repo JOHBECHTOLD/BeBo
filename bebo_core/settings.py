@@ -35,7 +35,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Application definition
 
 INSTALLED_APPS = [
-    'inventory',
+    'inventory.apps.InventoryConfig',
     'simple_history',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -153,5 +153,5 @@ LOGOUT_REDIRECT_URL = 'login'    # Wohin nach dem Logout?
 
 
 # Versionierung
-BEBO_VERSION = '1.5.0'
+BEBO_VERSION = '1.5.1'
 print(f"### BEBO VERSION GELADEN: {BEBO_VERSION} ###")

@@ -44,10 +44,21 @@ def box_detail(request, label):
         'label': 'Barcode',
         'image': 'Bild',
     }
+    # Erstelle eine Map von DB-Wert zu Anzeige-Wert für den Status
+    status_display_map = dict(Box.STATUS_CHOICES)
 
     for i, record in enumerate(history_records):
         changes = []
         
+        # Wenn es einen 'change_reason' gibt, ist das eine spezielle Änderung.
+        if record.history_change_reason:
+            changes.append({
+                'field': 'Aktion', # Wir nennen das Feld einfach "Aktion"
+                'old': '',
+                'new': record.history_change_reason,
+                'is_reason': True # Ein Flag für das Template, falls wir es anders darstellen wollen
+            })
+
         # Wenn es einen Vorgänger gibt (und es nicht der allererste Eintrag "Erstellt" ist)
         if i < len(history_records) - 1:
             prev_record = history_records[i+1]
@@ -59,10 +70,19 @@ def box_detail(request, label):
                 # Wir übersetzen den Feldnamen ins Deutsche (falls vorhanden)
                 field_label = field_names_de.get(change.field, change.field)
                 
+                old_value = change.old
+                new_value = change.new
+
+                # Wenn sich der Status ändert, übersetzen wir die Werte
+                if change.field == 'status':
+                    old_value = status_display_map.get(change.old, change.old) # .get() verhindert Fehler, falls Wert nicht existiert
+                    new_value = status_display_map.get(change.new, change.new)
+
+
                 changes.append({
                     'field': field_label,
-                    'old': change.old,
-                    'new': change.new
+                    'old': old_value,
+                    'new': new_value
                 })
 
         history_data.append({
@@ -74,6 +94,7 @@ def box_detail(request, label):
         'box': box,
         'history_data': history_data, # <-- Wir übergeben jetzt unsere schlauen Daten
     })
+
 @login_required
 def box_edit(request, label):
     box = get_object_or_404(Box, label=label)
@@ -83,21 +104,44 @@ def box_edit(request, label):
         # Wenn Daten gesendet wurden (Speichern Button gedrückt)
         form = BoxForm(request.POST, request.FILES, instance=box)
         if form.is_valid():
-            # 1. Box Daten speichern
-            box = form.save()
+            # 1. Instanz im Speicher erstellen, nicht sofort in DB speichern (commit=False)
+            box_instance = form.save(commit=False)
             
-            # 2. Bild speichern (falls eines hochgeladen wurde)
-            images = request.FILES.getlist('image_upload') # Hole ALLE hochgeladenen Bilder
-            for img in images:
-                BoxImage.objects.create(box=box, image=img)
+            # 2. Den aktuellen Benutzer für den Verlauf an die Instanz heften.
+            # simple-history und unsere Signale werden diesen User automatisch verwenden.
+            box_instance._history_user = request.user
+            
+            # 3. Felder für das Speichern vorbereiten, um einen ValueError zu vermeiden.
+            # Wir müssen sicherstellen, dass nur Felder gespeichert werden, die auch im Box-Model existieren.
+            # Formularfelder wie 'image_upload' müssen herausgefiltert werden.
+            
+            # 3a. Hole alle Felder, die sich laut Formular geändert haben.
+            changed_fields_from_form = form.changed_data or []
+            
+            # 3b. Hole eine Liste aller echten, speicherbaren Felder aus dem Box-Model.
+            model_field_names = {field.name for field in Box._meta.fields}
+            
+            # 3c. Erstelle die finale Liste der zu speichernden Felder, indem wir die beiden Listen abgleichen.
+            fields_to_update = [field for field in changed_fields_from_form if field in model_field_names]
 
-# JBE Dies war die alte Logik ohne Multiupload der Bilder           
-# JBE           image = form.cleaned_data.get('image_upload')
-# JBE           if image:
-# JBE               BoxImage.objects.create(box=box, image=image)
+            # 3d. Speichere die Instanz nur, wenn sich tatsächliche Model-Felder geändert haben.
+            # Das verhindert einen leeren "Keine Felder geändert"-Log.
+            if fields_to_update:
+                 box_instance.save(update_fields=fields_to_update)
+
+            # 4. Many-to-Many-Beziehungen (Kategorien) speichern.
+            # Dies ist nach commit=False zwingend notwendig. Es löst auch unser m2m_changed-Signal aus.
+            form.save_m2m()
+            
+            # 5. Hochgeladene Bilder verarbeiten
+            images = request.FILES.getlist('image_upload')
+            for img in images:
+                # Wichtig: Das Bild mit der NEUEN `box_instance` verknüpfen
+                BoxImage.objects.create(box=box_instance, image=img)
                 
-            # Zurück zur Detailseite
-            return redirect('box_detail', label=box.label)
+            # 6. Zurück zur Detailseite umleiten, mit dem Label der NEUEN Instanz
+            # (wichtig, falls der Barcode selbst geändert wurde)
+            return redirect('box_detail', label=box_instance.label)
     else:
         # Wenn die Seite nur aufgerufen wird -> Formular anzeigen
         form = BoxForm(instance=box)
@@ -112,23 +156,22 @@ def box_edit(request, label):
         'form': form,
         'box': box
     })
-# NEU: Neue Box anlegen
+    
 @login_required
 def box_new(request):
     if request.method == 'POST':
         form = BoxForm(request.POST, request.FILES)
         if form.is_valid():
-            box = form.save()
+            # Auch hier setzen wir den User, damit der erste Eintrag ("Erstellt") korrekt ist.
+            box = form.save(commit=False)
+            box._history_user = request.user
+            box.save()
+            form.save_m2m() # Wichtig nach commit=False
+
             #Multiupload von Bildern
             images = request.FILES.getlist('image_upload')
             for img in images:
                 BoxImage.objects.create(box=box, image=img)
-
-# JBE Dies war die alte Logik ohne Multiupload der Bilder
-#            # Falls direkt beim Erstellen ein Bild hochgeladen wurde:
-#            image = form.cleaned_data.get('image_upload')
-#            if image:
-#                BoxImage.objects.create(box=box, image=image)
 
             return redirect('box_detail', label=box.label)
     else:
@@ -138,32 +181,37 @@ def box_new(request):
         'form': form,
         'title': 'Neue Box anlegen' # Wir übergeben einen Titel für die Seite
     })
-# NEU: Box löschen
+
 @login_required
 def box_delete(request, label):
     box = get_object_or_404(Box, label=label)
     
     if request.method == 'POST':
         # Wenn der rote Knopf "Bestätigen" gedrückt wurde
+        box._history_user = request.user # Setze den User für den "Gelöscht"-Eintrag
         box.delete()
         # Bilder werden automatisch mitgelöscht (wegen on_delete=CASCADE im Model)
         return redirect('dashboard')
     
     # Zeige die Bestätigungsseite an
     return render(request, 'inventory/box_confirm_delete.html', {'box': box})
-# NEU: Einzelnes Bild löschen
+
 @login_required
 def image_delete(request, image_id):
     image = get_object_or_404(BoxImage, id=image_id)
-    box_label = image.box.label # Wir merken uns, zu welcher Box es gehört
+    # Wir holen uns die zugehörige Box
+    box = image.box
+    box_label = box.label
     
-    # Löschen
+    # WICHTIG: Wir heften den User an die Box, BEVOR das Signal durch .delete() ausgelöst wird.
+    box._history_user = request.user
+
+    # Löschen des Bildes, dies löst unser post_delete Signal aus
     image.delete()
     
     # Zurück zur Bearbeiten-Seite der Box
     return redirect('box_edit', label=box_label)
 
-# NEU: Globales Audit Log (Aktivitäten)
 @login_required
 def global_history(request):
     # Wir holen die Historie aller Boxen, sortiert nach Datum (neueste zuerst)
