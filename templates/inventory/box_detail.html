@@ -71,13 +71,13 @@
                                     {% for item in history_data %}
                                     <tr>
                                         <!-- Wann -->
-                                        <td class="text-nowrap" style="width: 150px;">
+                                        <td class="text-nowrap align-top" style="width: 150px;">
                                             <small>{{ item.record.history_date|date:"d.m.Y H:i" }}</small>
                                         </td>
                                         
                                         <!-- Wer -->
-                                        <td style="width: 100px;">
-                                            <span class="badge bg-light text-dark border">
+                                        <td style="width: 100px;" class="align-top">
+                                            <span class="badge user-badge">
                                                 {{ item.record.history_user|default:"System" }}
                                             </span>
                                         </td>
