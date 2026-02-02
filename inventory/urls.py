@@ -8,4 +8,5 @@ urlpatterns = [
     path('box/<str:label>/edit/', views.box_edit, name='box_edit'),
     path('box/<str:label>/delete/', views.box_delete, name='box_delete'),
     path('image/<int:image_id>/delete/', views.image_delete, name='image_delete'),
+    path('history/', views.global_history, name='global_history'),
 ]

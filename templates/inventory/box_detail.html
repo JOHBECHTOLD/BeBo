@@ -59,23 +59,56 @@
                     <!-- TAB 2: Verlauf (Audit Log) -->
                     <div class="tab-pane fade" id="history">
                         <div class="table-responsive">
-                            <table class="table table-sm table-hover">
-                                <thead>
+                            <table class="table table-sm table-hover align-middle">
+                                <thead class="table-light">
                                     <tr>
                                         <th>Wann</th>
                                         <th>Wer</th>
-                                        <th>Was</th>
+                                        <th>Aktion / Details</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for h in box.history.all %}
+                                    {% for item in history_data %}
                                     <tr>
-                                        <td>{{ h.history_date|date:"d.m.Y H:i" }}</td>
-                                        <td>{{ h.history_user|default:"System" }}</td>
+                                        <!-- Wann -->
+                                        <td class="text-nowrap" style="width: 150px;">
+                                            <small>{{ item.record.history_date|date:"d.m.Y H:i" }}</small>
+                                        </td>
+                                        
+                                        <!-- Wer -->
+                                        <td style="width: 100px;">
+                                            <span class="badge bg-light text-dark border">
+                                                {{ item.record.history_user|default:"System" }}
+                                            </span>
+                                        </td>
+                                        
+                                        <!-- Was / Details -->
                                         <td>
-                                            {% if h.history_type == '+' %}Erstellt
-                                            {% elif h.history_type == '-' %}Gelöscht
-                                            {% else %}Geändert{% endif %}
+                                            {% if item.record.history_type == '+' %}
+                                                <span class="badge bg-success">Erstellt</span>
+                                            
+                                            {% elif item.record.history_type == '-' %}
+                                                <span class="badge bg-danger">Gelöscht</span>
+                                            
+                                            {% else %}
+                                                <span class="badge bg-primary mb-1">Geändert</span>
+                                                
+                                                <!-- Die Details als kleine Liste -->
+                                                {% if item.changes %}
+                                                    <ul class="list-unstyled mb-0 small border-start border-3 ps-2 mt-1">
+                                                    {% for change in item.changes %}
+                                                        <li>
+                                                            <strong>{{ change.field }}:</strong> 
+                                                            <span class="text-muted text-decoration-line-through">{{ change.old }}</span> 
+                                                            &rarr; 
+                                                            <span class="fw-bold">{{ change.new }}</span>
+                                                        </li>
+                                                    {% endfor %}
+                                                    </ul>
+                                                {% else %}
+                                                    <div class="small text-muted fst-italic">(Keine Felder geändert)</div>
+                                                {% endif %}
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% empty %}

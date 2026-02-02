@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Box, BoxImage
 from .forms import BoxForm
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 @login_required
 def dashboard(request):
@@ -28,12 +29,50 @@ def dashboard(request):
     })
 @login_required
 def box_detail(request, label):
-    # Wir suchen die Box anhand des Barcodes (label). 
-    # Wenn sie nicht existiert, kommt automatisch Fehler 404 (Seite nicht gefunden).
     box = get_object_or_404(Box, label=label)
     
+    # --- Historie mit Diffs vorbereiten ---
+    # Wir laden die gesamte Historie
+    history_records = list(box.history.all().order_by('-history_date'))
+    history_data = []
+
+    # Mapping für schöne deutsche Feldnamen
+    field_names_de = {
+        'location': 'Lagerort',
+        'status': 'Status',
+        'description': 'Beschreibung',
+        'label': 'Barcode',
+        'image': 'Bild',
+    }
+
+    for i, record in enumerate(history_records):
+        changes = []
+        
+        # Wenn es einen Vorgänger gibt (und es nicht der allererste Eintrag "Erstellt" ist)
+        if i < len(history_records) - 1:
+            prev_record = history_records[i+1]
+            
+            # Die Funktion .diff_against() vergleicht zwei Einträge
+            delta = record.diff_against(prev_record)
+            
+            for change in delta.changes:
+                # Wir übersetzen den Feldnamen ins Deutsche (falls vorhanden)
+                field_label = field_names_de.get(change.field, change.field)
+                
+                changes.append({
+                    'field': field_label,
+                    'old': change.old,
+                    'new': change.new
+                })
+
+        history_data.append({
+            'record': record,
+            'changes': changes
+        })
+
     return render(request, 'inventory/box_detail.html', {
         'box': box,
+        'history_data': history_data, # <-- Wir übergeben jetzt unsere schlauen Daten
     })
 @login_required
 def box_edit(request, label):
@@ -123,3 +162,19 @@ def image_delete(request, image_id):
     
     # Zurück zur Bearbeiten-Seite der Box
     return redirect('box_edit', label=box_label)
+
+# NEU: Globales Audit Log (Aktivitäten)
+@login_required
+def global_history(request):
+    # Wir holen die Historie aller Boxen, sortiert nach Datum (neueste zuerst)
+    # select_related optimiert die Datenbankabfrage für User und Location
+    history_qs = Box.history.all().select_related('history_user', 'location').order_by('-history_date')
+    
+    # Pagination: Zeige 50 Einträge pro Seite
+    paginator = Paginator(history_qs, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'inventory/global_history.html', {
+        'page_obj': page_obj
+    })

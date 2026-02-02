@@ -106,11 +106,16 @@
                         <li><hr class="dropdown-divider"></li>
                         {% endif %}
                         
-                        <!-- 2. Passwort ändern (für alle) -->
+                        <!-- 2. Aktivitäten -->
+                        <li><a class="dropdown-item" href="{% url 'global_history' %}"><i class="bi bi-clock-history"></i> Aktivitäten</a></li>
+                        
+                        <li><hr class="dropdown-divider"></li>
+                        
+                        <!-- 3. Passwort ändern (für alle) -->
                         <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="bi bi-key"></i> Passwort ändern</a></li>
                         <li><hr class="dropdown-divider"></li>
                         
-                        <!-- 3. Logout -->
+                        <!-- 4. Logout -->
                         <li>
                             <form action="{% url 'logout' %}" method="post">
                                 {% csrf_token %}
