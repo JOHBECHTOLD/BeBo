@@ -48,9 +48,14 @@ def box_edit(request, label):
             box = form.save()
             
             # 2. Bild speichern (falls eines hochgeladen wurde)
-            image = form.cleaned_data.get('image_upload')
-            if image:
-                BoxImage.objects.create(box=box, image=image)
+            images = request.FILES.getlist('image_upload') # Hole ALLE hochgeladenen Bilder
+            for img in images:
+                BoxImage.objects.create(box=box, image=img)
+
+# JBE Dies war die alte Logik ohne Multiupload der Bilder           
+# JBE           image = form.cleaned_data.get('image_upload')
+# JBE           if image:
+# JBE               BoxImage.objects.create(box=box, image=image)
                 
             # Zurück zur Detailseite
             return redirect('box_detail', label=box.label)
@@ -75,10 +80,17 @@ def box_new(request):
         form = BoxForm(request.POST, request.FILES)
         if form.is_valid():
             box = form.save()
-            # Falls direkt beim Erstellen ein Bild hochgeladen wurde:
-            image = form.cleaned_data.get('image_upload')
-            if image:
-                BoxImage.objects.create(box=box, image=image)
+            #Multiupload von Bildern
+            images = request.FILES.getlist('image_upload')
+            for img in images:
+                BoxImage.objects.create(box=box, image=img)
+
+# JBE Dies war die alte Logik ohne Multiupload der Bilder
+#            # Falls direkt beim Erstellen ein Bild hochgeladen wurde:
+#            image = form.cleaned_data.get('image_upload')
+#            if image:
+#                BoxImage.objects.create(box=box, image=image)
+
             return redirect('box_detail', label=box.label)
     else:
         form = BoxForm()

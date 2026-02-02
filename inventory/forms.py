@@ -1,20 +1,45 @@
 from django import forms
-from .models import Box, BoxImage
+from .models import Box
 
+# 1. Das Widget: Erlaubt HTML-seitig mehrere Dateien (multiple)
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+# 2. Das Feld: Erlaubt Python-seitig eine Liste von Dateien
+class MultipleFileField(forms.FileField):
+    def to_python(self, data):
+        if not data:
+            return None
+        # Wenn wir eine Liste bekommen, prüfen wir jede Datei einzeln
+        if isinstance(data, list):
+            return [super(MultipleFileField, self).to_python(f) for f in data]
+        # Wenn es nur eine Datei ist, packen wir sie in eine Liste
+        return [super(MultipleFileField, self).to_python(data)]
+
+    def clean(self, data, initial=None):
+        # Wenn nichts da ist, ist es okay (da required=False)
+        if not data:
+            return None
+        # Wir geben die bereinigte Liste zurück
+        return self.to_python(data)
+
+# 3. Das Formular
 class BoxForm(forms.ModelForm):
-    # Ein Zusatzfeld für den Upload eines Bildes
-    image_upload = forms.ImageField(
+    # Wir nutzen unser neues Feld und unser neues Widget
+    image_upload = MultipleFileField( 
         required=False, 
-        label="Neues Bild hinzufügen",
-        widget=forms.ClearableFileInput(attrs={'class': 'form-control','accept': 'image/*'})
+        label="Bilder hinzufügen (Mehrfachauswahl möglich)",
+        widget=MultipleFileInput(attrs={
+            'class': 'form-control', 
+            'accept': 'image/*', 
+            'multiple': True 
+        })
     )
 
     class Meta:
         model = Box
-        # Diese Felder darf der User bearbeiten:
         fields = ['label', 'location', 'status', 'description', 'categories']
         
-        # Damit es hübsch aussieht (Bootstrap Klassen)
         widgets = {
             'label': forms.TextInput(attrs={'class': 'form-control font-monospace'}),
             'location': forms.Select(attrs={'class': 'form-select'}),

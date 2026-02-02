@@ -103,10 +103,15 @@
                         <div class="carousel-inner rounded shadow-sm">
                             {% for img in box.images.all %}
                             <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                <!-- Das Bild wird angezeigt -->
-                                <img src="{{ img.image.url }}" class="d-block w-100" style="object-fit: cover; height: 300px;" alt="Box Inhalt">
+                                <!-- NEU: Link für Lightbox (Vollbild) -->
+                                <!-- data-fslightbox="gallery" gruppiert alle Bilder zu einer Diashow -->
+                                <a data-fslightbox="gallery" href="{{ img.image.url }}">
+                                    <!-- cursor: pointer zeigt an, dass man klicken kann -->
+                                    <img src="{{ img.image.url }}" class="d-block w-100" style="object-fit: cover; height: 300px; cursor: pointer;" alt="Box Inhalt">
+                                </a>
+                                
                                 <div class="carousel-caption d-none d-md-block p-1 bg-dark bg-opacity-50 rounded-bottom">
-                                    <small>{{ img.uploaded_at|date:"d.m.Y" }}</small>
+                                    <small>{{ img.uploaded_at|date:"d.m.Y" }} (Klicken für Vollbild)</small>
                                 </div>
                             </div>
                             {% endfor %}
