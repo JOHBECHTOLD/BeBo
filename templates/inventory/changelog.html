@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<a href="{% url 'dashboard' %}" class="text-decoration-none text-muted mb-3 d-block">
+    <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+</a>
+
+<h1 class="h2 mb-4">Changelog & Release Notes</h1>
+
+<!-- v1.5.x -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.5.3 <span class="badge bg-secondary ms-2">Patch</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">UI-Verbesserungen & Lesbarkeit</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Barcode-Anzeige zur besseren Lesbarkeit formatiert (94.xxxxxxxxx.p).</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Suche ist nun tolerant gegenüber Eingaben mit Punkten im Barcode.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Link zum globalen Verlauf ("Aktivitäten") in die Hauptnavigation verschoben.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Verlinkung zum Changelog im Footer hinzugefügt.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.5.2 <span class="badge bg-secondary ms-2">Patch</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Korrekturen der Verlaufsanzeige</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Vertikale Ausrichtung aller Elemente in der Verlaufstabelle korrigiert.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Design des "User"-Badges an das Dark-/Light-Theme angepasst.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.5.1 <span class="badge bg-secondary ms-2">Patch</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Stabilisierung der Verlaufs-Funktion</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Verlauf protokolliert nun auch Änderungen an Kategorien und Bildern.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Doppelte/leere Verlaufseinträge werden verhindert.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Benutzer wird bei allen Aktionen korrekt im Verlauf hinterlegt.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.5.0 <span class="badge bg-primary ms-2">Feature-Release</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Detaillierter Verlauf & Multi-Upload</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Einführung eines detaillierten Verlaufs für jede Box.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Globales Audit-Log ("Aktivitäten") für alle Änderungen.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Gleichzeitiger Upload mehrerer Bilder pro Box.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- v1.4.x -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.4.1 <span class="badge bg-secondary ms-2">Patch</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Verbesserungen für Upload & Galerie</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Korrektur der Formularvalidierung beim Multi-Upload.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Bildergalerie öffnet Bilder nun in einer Lightbox (Vollbild).</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.4.0 <span class="badge bg-primary ms-2">Feature-Release</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Benutzerfreundlichkeit & PWA-Features</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>App Icon für den Homescreen (PWA-fähig).</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Passwort-Änderung für Benutzer (Self-Service).</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Dynamische Versionsanzeige im Footer.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- v1.3.x -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.3.1 <span class="badge bg-secondary ms-2">Patch</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Scanner-Optimierung</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Barcode-Scanner erkennt nun Code-128 zuverlässiger.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Validierung auf "94er" Qualifier im Scanner implementiert.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.3.0 <span class="badge bg-primary ms-2">Feature-Release</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Barcode-Scanner für 1D-Codes</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Erste Implementierung des Barcode-Scanners.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- v1.2.x -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.2.0 <span class="badge bg-primary ms-2">Feature-Release</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Kern-Interaktionen</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Login-System.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Löschen von einzelnen Bildern.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>"Im Zugriff"-Status für Boxen.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- v1.1.x -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.1.x <span class="badge bg-secondary ms-2">Patch</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Deployment & Bugfixes</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Konfiguration für Proxy-Server (SSL) und statische Dateien (WhiteNoise).</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Fehlerbehebung für "Abbrechen"-Button und Formular-Rücksprünge.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- v1.0.0 -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.0.0 <span class="badge bg-primary ms-2">Feature-Release</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">MVP (Minimum Viable Product)</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i>Grundlegende Funktionalität der Box-Verwaltung live geschaltet.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- v0.x: Setup & Grundlagen -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">Projekt-Setup (Prä-Release)</div>
+    <div class="card-body">
+        <h5 class="card-title">Version 0.1 - 0.3</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-code-slash me-2 text-muted"></i>Frontend-Grundlagen, Bilder-Upload und Galerie (v0.3).</li>
+            <li><i class="bi bi-code-slash me-2 text-muted"></i>Backend-Logik und Admin-Interface (v0.2).</li>
+            <li><i class="bi bi-code-slash me-2 text-muted"></i>Grundlegendes Django-Projekt aufgesetzt (v0.1).</li>
+            <li><i class="bi bi-code-slash me-2 text-muted"></i>Initiales Projekt-Setup mit Docker.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

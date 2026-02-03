@@ -95,8 +95,16 @@
         <div class="collapse navbar-collapse" id="navbarContent">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" href="/">Übersicht</a>
+                <a class="nav-link" href="/">
+                    <i class="bi bi-grid-1x2"></i> Übersicht
+                 </a>
             </li>
+            <!-- Aktivitäten-Link hier -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'global_history' %}">
+                    <i class="bi bi-clock-history"></i> Aktivitäten
+                </a>
+             </li>
           </ul>
 
           <!-- Rechte Seite: User Menü -->
@@ -267,8 +275,11 @@
   <!-- Footer -->
   <footer class="py-4 mt-5 border-top">
       <div class="container text-center text-muted small">
-          <p class="mb-1">&copy; {% now "Y" %} Johannes Bechtold &bull; BeBo v{{ bebo_version }}</p>
-          <!-- Änderung: Text angepasst -->
+          <p class="mb-1">&copy; {% now "Y" %} Johannes Bechtold &bull;
+            <a href="{% url 'changelog' %}" target="_blank" class="text-muted text-decoration-none">
+                BeBo v{{ bebo_version }}
+            </a>
+          <!-- Slogan -->
           <p class="mb-0">Made with <i class="bi bi-heart-fill text-danger"></i> for tidiness</p>
        </div>
   </footer>

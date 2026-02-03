@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load inventory_extras %}
 
 {% block content %}
 <!-- Header Bereich -->
@@ -7,7 +8,7 @@
         <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted mb-1 d-block">
             <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
         </a>
-        <h1 class="h2 text-bebo font-monospace">{{ box.label }}</h1>
+        <h1 class="h2 text-bebo font-monospace">{{ box.label|format_barcode }}</h1>
     </div>
     <div>
         <a href="{% url 'box_edit' box.label %}" class="btn btn-outline-primary">

@@ -15,8 +15,14 @@ def dashboard(request):
     
     # 3. Wenn gesucht wurde, filtern wir die Liste
     if query:
+        # Anpassung 1.5.3 Start
+        # Wir bereinigen den Suchbegriff, indem wir eventuelle Punkte entfernen.
+        # So funktioniert die Suche nach z.B. '94.123' und '94123' gleichermaßen.
+        clean_query_for_label = query.replace('.', '')
+        # Anpassung 1.5.3 Ende 
+
         boxes = boxes.filter(
-            Q(label__icontains=query) |              # Suche im Barcode
+                    Q(label__icontains=clean_query_for_label) | # Suche im Barcode 1.5.3 Anpassung alt: Q(label__icontains=query) |
             Q(description__icontains=query) |        # Suche in Beschreibung
             Q(location__name__icontains=query) |     # Suche im Lagerort-Namen
             Q(categories__name__icontains=query)     # Suche in Kategorien
@@ -226,3 +232,8 @@ def global_history(request):
     return render(request, 'inventory/global_history.html', {
         'page_obj': page_obj
     })
+
+# View für die Changelog-Seite
+@login_required
+def changelog_view(request):
+    return render(request, 'inventory/changelog.html')
