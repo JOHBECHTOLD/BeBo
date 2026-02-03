@@ -153,5 +153,5 @@ LOGOUT_REDIRECT_URL = 'login'    # Wohin nach dem Logout?
 
 
 # Versionierung
-BEBO_VERSION = '1.5.2'
+BEBO_VERSION = '1.5.3'
 print(f"### BEBO VERSION GELADEN: {BEBO_VERSION} ###")
