@@ -220,17 +220,69 @@ def image_delete(request, image_id):
 
 @login_required
 def global_history(request):
-    # Wir holen die Historie aller Boxen, sortiert nach Datum (neueste zuerst)
-    # select_related optimiert die Datenbankabfrage für User und Location
+    # Basis-Abfrage: Hole die Historie aller Boxen
+    # Das .order_by() hier wird unser Standard, falls keine Sortierung angegeben ist.
     history_qs = Box.history.all().select_related('history_user', 'location').order_by('-history_date')
     
+    view_title = "Alle Aktivitäten"
+
+    # --- 1. USER-FILTER LOGIK (bleibt gleich) ---
+    user_filter = request.GET.get('user')
+    if user_filter == 'me' and request.user.is_authenticated:
+        history_qs = history_qs.filter(history_user=request.user)
+        view_title = "Meine Aktivitäten"
+
+    # --- 2. NEUE SORTIER-LOGIK ---
+    # Standard-Sortierung
+    sort_by = request.GET.get('sort', '-history_date') # Default: neueste zuerst
+    sort_dir = request.GET.get('dir', 'desc')
+
+    # Mapping von URL-Parametern zu echten DB-Feldern, um Sicherheit zu gewährleisten
+    # und nach verknüpften Feldern zu sortieren (z.B. user__username).
+    valid_sort_fields = {
+        'wann': 'history_date',
+        'wer': 'history_user__username',
+        'aktion': 'history_type',
+        'box': 'label',
+        'lagerort': 'location__name',
+        'status': 'status',
+    }
+
+    # Hole den DB-Feldnamen aus unserem Mapping
+    db_field = valid_sort_fields.get(request.GET.get('sort'))
+
+    if db_field:
+        # Wenn die Richtung 'desc' (absteigend) ist, fügen wir ein '-' vor den Feldnamen
+        if sort_dir == 'desc':
+            sort_by = f'-{db_field}'
+        else:
+            sort_by = db_field
+            
+        # Wende die Sortierung an
+        history_qs = history_qs.order_by(sort_by)
+
     # Pagination: Zeige 50 Einträge pro Seite
     paginator = Paginator(history_qs, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Baue einen String mit den aktuellen Query-Parametern für die Links im Template
+    # Wir schließen 'page' aus, da es von den Paginierungslinks selbst hinzugefügt wird.
+    current_params = request.GET.copy()
+    if 'page' in current_params:
+        del current_params['page']
+    
+    # Aktuelle Sortierrichtung für die Links im Template bestimmen
+    # Wenn aktuell aufsteigend sortiert wird, soll der nächste Klick absteigend sein
+    next_sort_dir = 'asc' if sort_dir == 'desc' else 'desc'
+    
     return render(request, 'inventory/global_history.html', {
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'view_title': view_title,
+        'current_sort': request.GET.get('sort'), # Welches Feld ist sortiert?
+        'current_dir': sort_dir,                 # In welche Richtung?
+        'next_sort_dir': next_sort_dir,          # Was ist die nächste Richtung?
+        'query_params': current_params.urlencode(), # z.B. "user=me&sort=wer&dir=asc"
     })
 
 # View für die Changelog-Seite

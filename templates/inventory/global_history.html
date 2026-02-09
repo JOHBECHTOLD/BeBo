@@ -1,23 +1,96 @@
 {% extends 'base.html' %}
+{% load inventory_extras %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0 text-bebo"><i class="bi bi-clock-history"></i> Aktivitäten-Protokoll</h1>
-    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Zurück</a>
+    <h1 class="h3 mb-0 text-bebo"><i class="bi bi-clock-history"></i> {{ view_title|default:"Aktivitäten-Protokoll" }}</h1>
+    
+    <!-- Gruppe für die Buttons -->
+    <div>
+        <!-- Button zum Zürücksetzen wird nur angezeigt, wenn es URL-Parameter gibt -->
+        {% if request.GET %}
+            <a href="{% url 'global_history' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg"></i> Filter zurücksetzen
+            </a>
+        {% endif %}
+        <!-- Button zum Zurück gehen -->
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary ms-2">Zurück</a>
+    </div>
 </div>
 
 <div class="card shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover table-striped mb-0 align-middle">
-                <thead class="bg-light">
-                    <tr>
-                        <th>Wann</th>
-                        <th>Wer</th>
-                        <th>Aktion</th>
-                        <th>Box</th>
-                        <th>Lagerort</th>
-                        <th>Status</th>
+                <thead>
+                  <tr>
+                        <th>
+                            <!-- Wir bestimmen die nächste Richtung VOR dem Aufruf des Tags -->
+                            {% if current_sort == 'wann' %}
+                                {% url_replace sort='wann' dir=next_sort_dir as sort_url %}
+                            {% else %}
+                                {% url_replace sort='wann' dir='asc' as sort_url %}
+                            {% endif %}
+                            <a href="?{{ sort_url }}">
+                                Wann
+                                {% if current_sort == 'wann' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            {% if current_sort == 'wer' %}
+                                {% url_replace sort='wer' dir=next_sort_dir as sort_url %}
+                            {% else %}
+                                {% url_replace sort='wer' dir='asc' as sort_url %}
+                            {% endif %}
+                            <a href="?{{ sort_url }}">
+                                Wer
+                                {% if current_sort == 'wer' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            {% if current_sort == 'aktion' %}
+                                {% url_replace sort='aktion' dir=next_sort_dir as sort_url %}
+                            {% else %}
+                                {% url_replace sort='aktion' dir='asc' as sort_url %}
+                            {% endif %}
+                            <a href="?{{ sort_url }}">
+                                Aktion
+                                {% if current_sort == 'aktion' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            {% if current_sort == 'box' %}
+                                {% url_replace sort='box' dir=next_sort_dir as sort_url %}
+                            {% else %}
+                                {% url_replace sort='box' dir='asc' as sort_url %}
+                            {% endif %}
+                            <a href="?{{ sort_url }}">
+                                Box
+                                {% if current_sort == 'box' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            {% if current_sort == 'lagerort' %}
+                                {% url_replace sort='lagerort' dir=next_sort_dir as sort_url %}
+                            {% else %}
+                                {% url_replace sort='lagerort' dir='asc' as sort_url %}
+                            {% endif %}
+                            <a href="?{{ sort_url }}">
+                                Lagerort
+                                {% if current_sort == 'lagerort' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            {% if current_sort == 'status' %}
+                                {% url_replace sort='status' dir=next_sort_dir as sort_url %}
+                            {% else %}
+                                {% url_replace sort='status' dir='asc' as sort_url %}
+                            {% endif %}
+                            <a href="?{{ sort_url }}">
+                                Status
+                                {% if current_sort == 'status' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
+                            </a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -29,7 +102,7 @@
                         <!-- Wer -->
                         <td>
                             {% if h.history_user %}
-                                <span class="badge bg-light text-dark border"><i class="bi bi-person"></i> {{ h.history_user.username }}</span>
+                                <span class="badge user-badge"><i class="bi bi-person"></i> {{ h.history_user.username }}</span>
                             {% else %}
                                 <span class="text-muted small">System</span>
                             {% endif %}
@@ -49,9 +122,9 @@
                         <!-- Box Label (Link nur wenn nicht gelöscht) -->
                         <td class="font-monospace">
                             {% if h.history_type == '-' %}
-                                <span class="text-decoration-line-through text-muted">{{ h.label }}</span>
+                                 <span class="text-decoration-line-through text-muted">{{ h.label|format_barcode }}</span>
                             {% else %}
-                                <a href="{% url 'box_detail' h.label %}" class="text-decoration-none fw-bold">{{ h.label }}</a>
+                                <a href="{% url 'box_detail' h.label %}" class="text-decoration-none fw-bold">{{ h.label|format_barcode }}</a>
                             {% endif %}
                         </td>
                         
@@ -76,13 +149,13 @@
         </div>
     </div>
     
-    <!-- Pagination Navigation -->
+    <!-- in global_history.html -->
     {% if page_obj.has_other_pages %}
     <div class="card-footer">
         <nav>
             <ul class="pagination justify-content-center mb-0">
                 {% if page_obj.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Zurück</a></li>
+                    <li class="page-item"><a class="page-link" href="?{% url_replace page=page_obj.previous_page_number %}">Zurück</a></li>
                 {% else %}
                     <li class="page-item disabled"><span class="page-link">Zurück</span></li>
                 {% endif %}
@@ -90,7 +163,7 @@
                 <li class="page-item active"><span class="page-link">{{ page_obj.number }} von {{ page_obj.paginator.num_pages }}</span></li>
 
                 {% if page_obj.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Weiter</a></li>
+                    <li class="page-item"><a class="page-link" href="?{% url_replace page=page_obj.next_page_number %}">Weiter</a></li>
                 {% else %}
                     <li class="page-item disabled"><span class="page-link">Weiter</span></li>
                 {% endif %}

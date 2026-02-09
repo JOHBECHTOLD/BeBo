@@ -16,3 +16,14 @@ def format_barcode(value):
     
     # Wenn der Wert nicht dem erwarteten Format entspricht, gib ihn unverändert zurück.
     return value
+
+@register.simple_tag(takes_context=True)
+def url_replace(context, **kwargs):
+    """
+    Dieser Tag ersetzt oder fügt Query-Parameter in der aktuellen URL hinzu.
+    Sehr nützlich für Paginierung, Filter und Sortierung.
+    """
+    query = context['request'].GET.copy()
+    for key, value in kwargs.items():
+        query[key] = value
+    return query.urlencode()
