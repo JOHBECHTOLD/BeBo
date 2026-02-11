@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="col-md-8 offset-md-2">
+    <div class="card shadow-sm border-danger">
+        <div class="card-body text-center">
+            <h2 class="card-title text-danger mb-4">Kategorie wirklich löschen?</h2>
+            <p>Möchtest du die Kategorie "<strong>{{ object.name }}</strong>" wirklich endgültig löschen?</p>
+            <p class="text-muted small">
+                Achtung: Dies ist nur möglich, wenn dieser Kategorie keine Boxen mehr zugeordnet sind.
+            </p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Ja, endgültig löschen</button>
+                <a href="{% url 'location_list' %}" class="btn btn-secondary">Abbrechen</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

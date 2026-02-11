@@ -10,11 +10,14 @@
         </a>
         <h1 class="h2 text-bebo font-monospace">{{ box.label|format_barcode }}</h1>
     </div>
+    <!-- ÄNDERUNG: Bearbeiten-Button nur für User/Master Feature (1.6.0)-->
+    {% if perms.inventory.change_box %}
     <div>
         <a href="{% url 'box_edit' box.label %}" class="btn btn-outline-primary">
             <i class="bi bi-pencil"></i> Bearbeiten
         </a>
     </div>
+    {% endif %}
 </div>
 
 <div class="row g-4">
@@ -35,20 +38,30 @@
                 <div class="tab-content" id="boxTabContent">                 
                     <!-- TAB 1: Infos -->
                     <div class="tab-pane fade show active" id="info">
-                        <h5 class="card-title mt-2">{{ box.location.name }}</h5>
+                        <!-- ÄNDERUNG: Klick auf Lagerort filtert Dashboard (Feature 1.6.0) -->
+                        <h5 class="card-title mt-2">
+                            <a href="{% url 'dashboard' %}?location={{ box.location.id }}" class="text-bebo text-decoration-none">
+                                {{ box.location.name }} <i class="bi bi-filter small"></i>
+                            </a>
+                        </h5>
                         
                         <div class="mb-3">
-                            {% if box.status == 'STORED' %}
-                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Gelagert</span>
-                            {% elif box.status == 'ACCESS' %}
-                                <!-- NEU: Auch hier grün anzeigen -->
-                                <span class="badge bg-success"><i class="bi bi-hand-index-thumb"></i> Im Zugriff</span>
+                            <!-- NEU: Status-Badge verlinkt nun zum gefilterten Dashboard -->
+                            <a href="{% url 'dashboard' %}?status={{ box.status }}" class="text-decoration-none">
+                                {% if box.status == 'STORED' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Gelagert</span>
+                                {% elif box.status == 'ACCESS' %}
+                                    <span class="badge bg-success"><i class="bi bi-hand-index-thumb"></i> Im Zugriff</span>
                                 {% else %}
-                                <span class="badge bg-warning text-dark">{{ box.get_status_display }}</span>
-                            {% endif %}
-                            
+                                    <span class="badge bg-warning text-dark">{{ box.get_status_display }}</span>
+                                {% endif %}
+                            </a>
+    
+                            <!-- Kategorien (hast du wahrscheinlich schon drin) -->
                             {% for cat in box.categories.all %}
-                                <span class="badge" style="background-color: {{ cat.color }}">{{ cat.name }}</span>
+                                <a href="{% url 'dashboard' %}?category={{ cat.id }}" class="badge text-decoration-none" style="background-color: {{ cat.color }}">
+                                    {{ cat.name }}
+                                </a>
                             {% endfor %}
                         </div>
 
@@ -171,9 +184,12 @@
                 {% endif %}
                 
                 <!-- Der Upload Button führt jetzt direkt zum Bearbeiten-Modus -->
+                <!-- 4. ÄNDERUNG: Foto-Upload Button nur für User/Master -->
+                {% if perms.inventory.change_box %}
                 <a href="{% url 'box_edit' box.label %}" class="btn btn-sm btn-outline-secondary w-100">
                     <i class="bi bi-upload"></i> Foto hochladen / Bearbeiten
                 </a>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -1,9 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Box, BoxImage
+from .models import Box, BoxImage, Location, Category
 from .forms import BoxForm
 from django.db.models import Q
 from django.core.paginator import Paginator
+
+# Imports für Feature Release 1.6.0
+from django.urls import reverse_lazy
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.db.models import Q
+
 
 @login_required
 def dashboard(request):
@@ -33,6 +41,7 @@ def dashboard(request):
         'total_count': boxes.count(), # Zählt jetzt nur die gefundenen Boxen
         'search_query': query         # Damit das Suchfeld gefüllt bleibt
     })
+
 @login_required
 def box_detail(request, label):
     box = get_object_or_404(Box, label=label)
@@ -289,3 +298,167 @@ def global_history(request):
 @login_required
 def changelog_view(request):
     return render(request, 'inventory/changelog.html')
+
+
+# --- Feature Release 1.6.0: Stammdaten-Verwaltung (CRUD) ---
+# Wir verwenden Class-Based Views (CBVs) für Standard-Operationen.
+# Das LoginRequiredMixin stellt sicher, dass nur eingeloggte Benutzer zugreifen können.
+
+# --- LAGERORT (LOCATION) VIEWS ---
+
+class LocationListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    permission_required = 'inventory.view_location'
+    model = Location
+    template_name = 'inventory/location_list.html'          # Dieses Template müssen wir erstellen
+    context_object_name = 'locations'                       # Name der Variable im Template
+    ordering = ['name']                                     # Sortiert die Liste alphabetisch
+
+class LocationCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    permission_required = 'inventory.add_location'
+    model = Location
+    fields = ['name', 'description', 'is_external']         # Welche Felder sollen im Formular sein?
+    template_name = 'inventory/location_form.html'          # Dieses Template müssen wir erstellen
+    success_url = reverse_lazy('location_list')             # Wohin nach erfolgreichem Speichern?
+
+class LocationUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    permission_required = 'inventory.change_location'
+    model = Location
+    fields = ['name', 'description', 'is_external']
+    template_name = 'inventory/location_form.html'          # Nutzt das gleiche Template wie CreateView
+    success_url = reverse_lazy('location_list')
+
+class LocationDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    permission_required = 'inventory.delete_location'
+    model = Location
+    template_name = 'inventory/location_confirm_delete.html' # Dieses Template müssen wir erstellen
+    success_url = reverse_lazy('location_list')
+
+# --- Feature Release 1.6.0: KATEGORIEN (CATEGORY) VIEWS ---
+
+class CategoryListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    permission_required = 'inventory.view_category'
+    model = Category
+    template_name = 'inventory/category_list.html'
+    context_object_name = 'categories'
+    ordering = ['name']
+
+class CategoryCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    permission_required = 'inventory.add_category'
+    model = Category
+    fields = ['name', 'color'] # ACHTUNG: Felder an das Category-Model anpassen!
+    template_name = 'inventory/category_form.html'
+    success_url = reverse_lazy('category_list')
+
+class CategoryUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    permission_required = 'inventory.change_category'
+    model = Category
+    fields = ['name', 'color'] # ACHTUNG: Felder an das Category-Model anpassen!
+    template_name = 'inventory/category_form.html'
+    success_url = reverse_lazy('category_list')
+
+class CategoryDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    permission_required = 'inventory.delete_category'
+    model = Category
+    template_name = 'inventory/category_confirm_delete.html'
+    success_url = reverse_lazy('category_list')
+
+    # --- Feature Release 1.6.0: BOX (BOX) VIEWS ---
+
+class BoxListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    permission_required = 'inventory.view_box'
+    model = Box
+    template_name = 'inventory/dashboard.html'              # Das Dashboard dient als Liste
+    context_object_name = 'boxes'
+    ordering = ['-updated_at']                              # Letzte Änderung zuerst
+    raise_exception = True                                  # Zeigt 403 Fehler bei fehlender Berechtigung
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # 1. Parameter aus der URL holen
+        search_query = self.request.GET.get('q')            # Suchbegriff aus dem Suchformular
+        location_id = self.request.GET.get('location')      # Filter für Lagerort (Antippen)
+        category_id = self.request.GET.get('category')      # Filter für Kategorie (Antippen)
+        status_filter = self.request.GET.get('status')      # Filter für Status (Antippen der Badges)
+
+        # --- LOGIK: GEZIELTE FILTER (Antippen von Badges/Links) ---
+        if location_id:
+            queryset = queryset.filter(location_id=location_id)
+            
+        if category_id:
+            queryset = queryset.filter(categories__id=category_id)
+
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+
+        # --- LOGIK: VOLLTEXTSUCHE (Manuelle Eingabe im Suchfeld) ---
+        if search_query:
+            # Mapping deutscher Begriffe auf die Datenbank-Werte (STATUS_CHOICES)
+            status_map = {
+                'gelagert': 'STORED',
+                'verliehen': 'LENT',
+                'zugriff': 'ACCESS',
+                'extern': 'EXT',
+                'transit': 'TRANSIT',
+                'verloren': 'LOST',
+                'unbekannt': 'LOST'
+            }
+            mapped_status = status_map.get(search_query.lower())
+
+            # Suche über alle relevanten Felder mit Q-Objekten
+            q_objects = Q(label__icontains=search_query) | \
+                        Q(description__icontains=search_query) | \
+                        Q(location__name__icontains=search_query) | \
+                        Q(categories__name__icontains=search_query)
+
+            # Falls der Suchbegriff einem Status entspricht, diesen in die Suche einbeziehen
+            if mapped_status:
+                q_objects |= Q(status=mapped_status)
+
+            queryset = queryset.filter(q_objects).distinct()
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # total_count muss auf dem bereits gefilterten Queryset basieren
+        context['total_count'] = self.get_queryset().count()
+        # Suchbegriff für das Template bereitstellen
+        context['search_query'] = self.request.GET.get('q', '')
+        return context
+    
+
+class BoxDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+    permission_required = 'inventory.view_box'
+    model = Box
+    template_name = 'inventory/box_detail.html'
+    context_object_name = 'box'
+    slug_field = 'label'        # Name des Feldes in deinem Model (z.B. 'label' oder 'barcode')
+    slug_url_kwarg = 'label_id'       # Name des Parameters aus der urls.py (dort haben wir 'pk' genutzt)
+
+class BoxCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    permission_required = 'inventory.add_box'
+    model = Box
+    # Felder an dein Model anpassen (Beispielhaft):
+    fields = ['label', 'location', 'categories', 'status', 'description']
+    template_name = 'inventory/box_form.html'
+    success_url = reverse_lazy('dashboard')
+    raise_exception = True
+
+class BoxUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    permission_required = 'inventory.change_box'
+    model = Box
+    # Felder an dein Model anpassen:
+    fields = ['label', 'location', 'categories', 'status', 'description']
+    template_name = 'inventory/box_form.html'
+    success_url = reverse_lazy('dashboard')
+    slug_field = 'label' 
+    slug_url_kwarg = 'label_id'
+
+class BoxDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    permission_required = 'inventory.delete_box'
+    model = Box
+    template_name = 'inventory/box_confirm_delete.html'
+    success_url = reverse_lazy('dashboard')
+    slug_field = 'label' 
+    slug_url_kwarg = 'label_id'

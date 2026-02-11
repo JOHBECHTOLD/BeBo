@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %} <!-- Falls du crispy_forms nutzt, sonst entfernen -->
+
+{% block content %}
+<div class="col-md-8 offset-md-2">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <!-- Titel ändert sich je nachdem, ob wir ein Objekt bearbeiten oder neu erstellen -->
+            <h2 class="card-title text-bebo mb-4">
+                {% if object %}
+                    Lagerort bearbeiten
+                {% else %}
+                    Neuen Lagerort anlegen
+                {% endif %}
+            </h2>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Wenn du crispy_forms nutzt: -->
+                {{ form|crispy }} 
+                
+                <!-- Wenn du KEIN crispy_forms nutzt, nutze das hier stattdessen: -->
+                <!-- {{ form.as_p }} -->
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                    <a href="{% url 'location_list' %}" class="btn btn-secondary">Abbrechen</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

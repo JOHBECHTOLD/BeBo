@@ -6,31 +6,34 @@
     <div class="col">
         <h1 class="h3 text-bebo">Meine Boxen <span class="badge bg-secondary fs-6 align-middle">{{ total_count }}</span></h1>
     </div>
+    <!-- Nur User und Master-User sehen den "Neu"-Button -->
+    {% if perms.inventory.add_box %}
     <div class="col-auto">
         <a href="{% url 'box_new' %}" class="btn btn-bebo"><i class="bi bi-plus-lg"></i> Neu</a>
     </div>
+    {% endif %}
 </div>
 
-<!-- Suchfeld -->
 <!-- Suchfeld -->
 <div class="card mb-4 shadow-sm">
     <div class="card-body p-2">
         <!-- Das Formular sendet die Daten per GET an dieselbe Seite -->
-        <form method="get" action=".">
+        <form method="GET" action="{% url 'dashboard' %}" class="mb-4">
             <div class="input-group">
-                <button type="submit" class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></button>
-                
-                <!-- WICHTIG: name="q" und value="{{ search_query }}" -->
-                <input type="text" id="searchInput" name="q" value="{{ search_query|default:'' }}" class="form-control border-0 shadow-none" placeholder="Suche nach Inhalt, Nummer oder Ort...">
-                
-                <!-- Scan Button -->
-                <button type="button" class="btn btn-link text-decoration-none text-bebo" onclick="startScanner('searchInput')">
-                    <i class="bi bi-upc-scan"></i>
-                </button>
-
-                <!-- Reset Button (nur wenn gesucht wurde) -->
-                {% if search_query %}
-                    <a href="{% url 'dashboard' %}" class="btn btn-link text-decoration-none text-muted"><i class="bi bi-x-lg"></i></a>
+                <span class="input-group-text bg-transparent border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" 
+                    name="q" 
+                    class="form-control border-start-0 ps-0" 
+                    placeholder="Suche nach Inhalt, Nummer oder Ort..." 
+                    value="{{ search_query }}"> <!-- Zeigt den aktuellen Suchbegriff an -->
+        
+                <button type="submit" class="btn btn-bebo">Suchen</button>
+        
+                <!-- Optional: Button zum Löschen der Suche -->
+                {% if search_query or request.GET.location or request.GET.category %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">X</a>
                 {% endif %}
             </div>
         </form>
@@ -47,15 +50,23 @@
             <!-- Header: 'bg-transparent' sorgt dafür, dass er die Farbe der Karte annimmt -->
             <div class="card-header border-bottom-0 pt-3 bg-transparent">
                 <div class="d-flex justify-content-between align-items-start">
-                    <span class="badge bg-bebo font-monospace">{{ box.label|format_barcode }}</span>
-                    {% if box.status == 'STORED' %}
-                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Gelagert</span>
-                    {% elif box.status == 'ACCESS' %}
-                        <!-- NEU: Grün und anderes Icon -->
-                        <span class="badge bg-success"><i class="bi bi-hand-index-thumb"></i> Im Zugriff</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark">{{ box.get_status_display }}</span>
-                    {% endif %}
+
+                    <!-- NEU: Klick auf Barcode öffnet Details (Feature 1.6.0) -->
+                    <a href="{% url 'box_detail' box.label %}" class="text-decoration-none">
+                        <span class="badge bg-bebo font-monospace" title="Details anzeigen">{{ box.label|format_barcode }}</span>
+                    </a>
+
+                    <!-- NEU: Klick auf Status filtert das Dashboard (Feature 1.6.0) -->
+                    <a href="{% url 'dashboard' %}?status={{ box.status }}" class="text-decoration-none" title="Nach diesem Status filtern">
+                        {% if box.status == 'STORED' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Gelagert</span>
+                        {% elif box.status == 'ACCESS' %}
+                            <span class="badge bg-success"><i class="bi bi-hand-index-thumb"></i> Im Zugriff</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">{{ box.get_status_display }}</span>
+                        {% endif %}
+                    </a>
+                    
                 </div>
             </div>
             

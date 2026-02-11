@@ -43,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "crispy_forms",
+    "crispy_bootstrap5"
+
 ]
 
 MIDDLEWARE = [
@@ -152,6 +155,10 @@ LOGIN_REDIRECT_URL = 'dashboard' # Wohin nach dem Login?
 LOGOUT_REDIRECT_URL = 'login'    # Wohin nach dem Logout?
 
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"        # 1.6.0
+CRISPY_TEMPLATE_PACK = "bootstrap5"                 # 1.6.0
+
+
 # Versionierung
-BEBO_VERSION = '1.5.5'
+BEBO_VERSION = '1.6.0'
 print(f"### BEBO VERSION GELADEN: {BEBO_VERSION} ###")

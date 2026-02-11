@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 text-bebo">Lagerorte verwalten</h1>
+    <a href="{% url 'location_create' %}" class="btn btn-bebo">
+        <i class="bi bi-plus-lg"></i> Neuen Lagerort anlegen
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="list-group list-group-flush">
+        {% for location in locations %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-1">{{ location.name }}</h5>
+                    <p class="mb-1 text-muted">{{ location.description|default:"Keine Beschreibung." }}</p>
+                    {% if location.is_external %}
+                        <span class="badge bg-warning text-dark">Extern/Transit</span>
+                    {% endif %}
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'location_update' location.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'location_delete' location.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="list-group-item text-center text-muted p-4">
+                Noch keine Lagerorte angelegt.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
