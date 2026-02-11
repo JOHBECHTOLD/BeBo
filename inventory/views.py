@@ -370,7 +370,7 @@ class BoxListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = 'inventory/dashboard.html'              # Das Dashboard dient als Liste
     context_object_name = 'boxes'
     ordering = ['-updated_at']                              # Letzte Änderung zuerst
-    raise_exception = True                                  # Zeigt 403 Fehler bei fehlender Berechtigung
+    raise_exception = False                                  # Zeigt 403 Fehler bei fehlender Berechtigung
 
     def get_queryset(self):
         queryset = super().get_queryset()
