@@ -13,7 +13,7 @@
     <!-- ÄNDERUNG: Bearbeiten-Button nur für User/Master Feature (1.6.0)-->
     {% if perms.inventory.change_box %}
     <div>
-        <a href="{% url 'box_edit' box.label %}" class="btn btn-outline-primary">
+        <a href="{% url 'box_edit' box.label %}" class="btn btn-bebo">
             <i class="bi bi-pencil"></i> Bearbeiten
         </a>
     </div>

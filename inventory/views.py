@@ -433,27 +433,116 @@ class BoxDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Box
     template_name = 'inventory/box_detail.html'
     context_object_name = 'box'
-    slug_field = 'label'        # Name des Feldes in deinem Model (z.B. 'label' oder 'barcode')
-    slug_url_kwarg = 'label_id'       # Name des Parameters aus der urls.py (dort haben wir 'pk' genutzt)
+    slug_field = 'label'                # Name des Feldes in deinem Model (z.B. 'label' oder 'barcode')
+    slug_url_kwarg = 'label_id'         # Name des Parameters aus der urls.py (dort haben wir 'pk' genutzt)
+
+    def get_context_data(self, **kwargs):
+        # 1. Rufe die Basis-Implementierung auf, um den Standard-Kontext zu erhalten
+        context = super().get_context_data(**kwargs)
+
+        # 2. Hole das aktuelle Box-Objekt und die zugehörigen Modelle
+        box = self.get_object()
+        Location = self.model._meta.get_field('location').related_model
+        Category = self.model._meta.get_field('categories').related_model
+
+        # 3. Hole die komplette Historie für diese Box, neueste zuerst
+        history_records = box.history.all().select_related('history_user').order_by('-history_date')
+
+        # 4. Bereite die Daten so auf, wie das Template sie erwartet (mit Änderungsdetails)
+        processed_history = []
+        for i, record in enumerate(history_records):
+            changes_list = []
+            
+            if record.history_type == '~' and i + 1 < len(history_records):
+                prev_record = history_records[i + 1]
+                delta = record.diff_against(prev_record)
+                
+                for change in delta.changes:
+                    field_verbose_name = self.model._meta.get_field(change.field).verbose_name
+                    old_value = change.old
+                    new_value = change.new
+
+                    # --- START: Logik zur "Übersetzung" der Werte in Klarnamen ---
+                    if change.field == 'location':
+                        old_obj = Location.objects.filter(pk=old_value).first()
+                        new_obj = Location.objects.filter(pk=new_value).first()
+                        old_value = old_obj.name if old_obj else "---"
+                        new_value = new_obj.name if new_obj else "---"
+
+                    elif change.field == 'status':
+                        old_value = dict(self.model.STATUS_CHOICES).get(old_value, old_value)
+                        new_value = dict(self.model.STATUS_CHOICES).get(new_value, new_value)
+                    
+                    elif change.field == 'categories':
+                        # KORREKTUR: Wir extrahieren die 'category'-ID aus jedem Dictionary in der Liste
+                        old_ids = [item['category'] for item in old_value]
+                        new_ids = [item['category'] for item in new_value]
+                        
+                        # Jetzt können wir die DB-Abfrage mit den sauberen ID-Listen machen
+                        old_items = Category.objects.filter(pk__in=old_ids).values_list('name', flat=True)
+                        new_items = Category.objects.filter(pk__in=new_ids).values_list('name', flat=True)
+                        
+                        old_value = ", ".join(sorted(old_items)) or "Keine"
+                        new_value = ", ".join(sorted(new_items)) or "Keine"
+
+                    else: # Fallback für andere Felder wie 'description'
+                        old_value = old_value if old_value else "---"
+                        new_value = new_value if new_value else "---"
+                    # --- ENDE: Logik zur "Übersetzung" ---
+
+                    changes_list.append({
+                        'field': field_verbose_name,
+                        'old': old_value,
+                        'new': new_value,
+                    })
+
+            # 5. Filtere leere "System"-Einträge oder irrelevante Änderungen heraus
+            is_creation = record.history_type == '+'
+            is_deletion = record.history_type == '-'
+            is_meaningful_change = record.history_type == '~' and len(changes_list) > 0
+            
+            if record.history_user and (is_creation or is_deletion or is_meaningful_change):
+                processed_history.append({
+                    'record': record,
+                    'changes': changes_list,
+                })
+
+        # 6. Füge die aufbereiteten und gefilterten Verlaufsdaten zum Kontext hinzu
+        context['history_data'] = processed_history
+        
+        # 7. Gib den vollständigen Kontext zurück
+        return context
 
 class BoxCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     permission_required = 'inventory.add_box'
     model = Box
-    # Felder an dein Model anpassen (Beispielhaft):
-    fields = ['label', 'location', 'categories', 'status', 'description']
+    form_class = BoxForm
     template_name = 'inventory/box_form.html'
     success_url = reverse_lazy('dashboard')
     raise_exception = True
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['box_detail'] = "Neue Box erstellen"
+        return context
+
 class BoxUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     permission_required = 'inventory.change_box'
     model = Box
-    # Felder an dein Model anpassen:
-    fields = ['label', 'location', 'categories', 'status', 'description']
+    form_class = BoxForm 
     template_name = 'inventory/box_form.html'
     success_url = reverse_lazy('dashboard')
     slug_field = 'label' 
     slug_url_kwarg = 'label_id'
+
+    def get_success_url(self):
+        # Nach dem Speichern zur Detailseite der gerade bearbeiteten Box weiterleiten
+        return reverse_lazy('box_detail', kwargs={'label_id': self.object.label})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['box_detail'] = "Box bearbeiten"
+        return context
 
 class BoxDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = 'inventory.delete_box'

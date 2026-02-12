@@ -93,7 +93,9 @@ class Box(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     # Das Audit-Log (Wer hat was geändert?)
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        m2m_fields=[categories],
+    )
 
     def __str__(self):
         return f"Box {self.label} ({self.location})"
