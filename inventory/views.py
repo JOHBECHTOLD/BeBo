@@ -43,211 +43,33 @@ def dashboard(request):
     })
 
 @login_required
-def box_detail(request, label):
-    box = get_object_or_404(Box, label=label)
-    
-    # --- Historie mit Diffs vorbereiten ---
-    # Wir laden die gesamte Historie
-    history_records = list(box.history.all().order_by('-history_date'))
-    history_data = []
-
-    # Mapping für schöne deutsche Feldnamen
-    field_names_de = {
-        'location': 'Lagerort',
-        'status': 'Status',
-        'description': 'Beschreibung',
-        'label': 'Barcode',
-        'image': 'Bild',
-    }
-    # Erstelle eine Map von DB-Wert zu Anzeige-Wert für den Status
-    status_display_map = dict(Box.STATUS_CHOICES)
-
-    for i, record in enumerate(history_records):
-        changes = []
-        
-        # Wenn es einen 'change_reason' gibt, ist das eine spezielle Änderung.
-        if record.history_change_reason:
-            changes.append({
-                'field': 'Aktion', # Wir nennen das Feld einfach "Aktion"
-                'old': '',
-                'new': record.history_change_reason,
-                'is_reason': True # Ein Flag für das Template, falls wir es anders darstellen wollen
-            })
-
-        # Wenn es einen Vorgänger gibt (und es nicht der allererste Eintrag "Erstellt" ist)
-        if i < len(history_records) - 1:
-            prev_record = history_records[i+1]
-            
-            # Die Funktion .diff_against() vergleicht zwei Einträge
-            delta = record.diff_against(prev_record)
-            
-            for change in delta.changes:
-                # Wir übersetzen den Feldnamen ins Deutsche (falls vorhanden)
-                field_label = field_names_de.get(change.field, change.field)
-                
-                old_value = change.old
-                new_value = change.new
-
-                # Wenn sich der Status ändert, übersetzen wir die Werte
-                if change.field == 'status':
-                    old_value = status_display_map.get(change.old, change.old) # .get() verhindert Fehler, falls Wert nicht existiert
-                    new_value = status_display_map.get(change.new, change.new)
-
-
-                changes.append({
-                    'field': field_label,
-                    'old': old_value,
-                    'new': new_value
-                })
-
-        history_data.append({
-            'record': record,
-            'changes': changes
-        })
-
-    return render(request, 'inventory/box_detail.html', {
-        'box': box,
-        'history_data': history_data, # <-- Wir übergeben jetzt unsere schlauen Daten
-    })
-
-@login_required
-def box_edit(request, label):
-    box = get_object_or_404(Box, label=label)
-    original_label = box.label
-    
-    if request.method == 'POST':
-        # Wenn Daten gesendet wurden (Speichern Button gedrückt)
-        form = BoxForm(request.POST, request.FILES, instance=box)
-        if form.is_valid():
-            # 1. Instanz im Speicher erstellen, nicht sofort in DB speichern (commit=False)
-            box_instance = form.save(commit=False)
-            
-            # 2. Den aktuellen Benutzer für den Verlauf an die Instanz heften.
-            # simple-history und unsere Signale werden diesen User automatisch verwenden.
-            box_instance._history_user = request.user
-            
-            # 3. Felder für das Speichern vorbereiten, um einen ValueError zu vermeiden.
-            # Wir müssen sicherstellen, dass nur Felder gespeichert werden, die auch im Box-Model existieren.
-            # Formularfelder wie 'image_upload' müssen herausgefiltert werden.
-            
-            # 3a. Hole alle Felder, die sich laut Formular geändert haben.
-            changed_fields_from_form = form.changed_data or []
-            
-            # 3b. Hole eine Liste aller echten, speicherbaren Felder aus dem Box-Model.
-            model_field_names = {field.name for field in Box._meta.fields}
-            
-            # 3c. Erstelle die finale Liste der zu speichernden Felder, indem wir die beiden Listen abgleichen.
-            fields_to_update = [field for field in changed_fields_from_form if field in model_field_names]
-
-            # 3d. Speichere die Instanz nur, wenn sich tatsächliche Model-Felder geändert haben.
-            # Das verhindert einen leeren "Keine Felder geändert"-Log.
-            if fields_to_update:
-                 box_instance.save(update_fields=fields_to_update)
-
-            # 4. Many-to-Many-Beziehungen (Kategorien) speichern.
-            # Dies ist nach commit=False zwingend notwendig. Es löst auch unser m2m_changed-Signal aus.
-            form.save_m2m()
-            
-            # 5. Hochgeladene Bilder verarbeiten
-            images = request.FILES.getlist('image_upload')
-            for img in images:
-                # Wichtig: Das Bild mit der NEUEN `box_instance` verknüpfen
-                BoxImage.objects.create(box=box_instance, image=img)
-                
-            # 6. Zurück zur Detailseite umleiten, mit dem Label der NEUEN Instanz
-            # (wichtig, falls der Barcode selbst geändert wurde)
-            return redirect('box_detail', label=box_instance.label)
-    else:
-        # Wenn die Seite nur aufgerufen wird -> Formular anzeigen
-        form = BoxForm(instance=box)
-
-    # TRICK: Falls das Formular Fehler hat (z.B. falsche Prüfziffer), hat das 'box' Objekt
-    # im Speicher jetzt den falschen Code. Wir setzen es für die Anzeige auf das Original zurück.
-    # Das Formularfeld selbst zeigt trotzdem die (falsche) Eingabe des Users an (via 'form'), 
-    # damit er sie korrigieren kann. Aber der 'Abbrechen'-Link stimmt wieder!
-    box.label = original_label 
-    
-    return render(request, 'inventory/box_form.html', {
-        'form': form,
-        'box': box
-    })
-    
-@login_required
-def box_new(request):
-    if request.method == 'POST':
-        form = BoxForm(request.POST, request.FILES)
-        if form.is_valid():
-            # Auch hier setzen wir den User, damit der erste Eintrag ("Erstellt") korrekt ist.
-            box = form.save(commit=False)
-            box._history_user = request.user
-            box.save()
-            form.save_m2m() # Wichtig nach commit=False
-
-            #Multiupload von Bildern
-            images = request.FILES.getlist('image_upload')
-            for img in images:
-                BoxImage.objects.create(box=box, image=img)
-
-            return redirect('box_detail', label=box.label)
-    else:
-        form = BoxForm()
-
-    return render(request, 'inventory/box_form.html', {
-        'form': form,
-        'title': 'Neue Box anlegen' # Wir übergeben einen Titel für die Seite
-    })
-
-@login_required
-def box_delete(request, label):
-    box = get_object_or_404(Box, label=label)
-    
-    if request.method == 'POST':
-        # Wenn der rote Knopf "Bestätigen" gedrückt wurde
-        box._history_user = request.user # Setze den User für den "Gelöscht"-Eintrag
-        box.delete()
-        # Bilder werden automatisch mitgelöscht (wegen on_delete=CASCADE im Model)
-        return redirect('dashboard')
-    
-    # Zeige die Bestätigungsseite an
-    return render(request, 'inventory/box_confirm_delete.html', {'box': box})
-
-@login_required
-def image_delete(request, image_id):
-    image = get_object_or_404(BoxImage, id=image_id)
-    # Wir holen uns die zugehörige Box
-    box = image.box
-    box_label = box.label
-    
-    # WICHTIG: Wir heften den User an die Box, BEVOR das Signal durch .delete() ausgelöst wird.
-    box._history_user = request.user
-
-    # Löschen des Bildes, dies löst unser post_delete Signal aus
-    image.delete()
-    
-    # Zurück zur Bearbeiten-Seite der Box
-    return redirect('box_edit', label=box_label)
-
-@login_required
 def global_history(request):
-    # Basis-Abfrage: Hole die Historie aller Boxen
-    # Das .order_by() hier wird unser Standard, falls keine Sortierung angegeben ist.
-    history_qs = Box.history.all().select_related('history_user', 'location').order_by('-history_date')
-    
+    # Basis-Query: nur "sinnvolle" Einträge:
+    # - mit Benutzer ODER
+    # - mit Change-Reason ODER
+    # - Erzeugt / Gelöscht (+ / -)
+    history_qs = (
+        Box.history.all()
+        .select_related('history_user', 'location')
+        .filter(
+            Q(history_user__isnull=False) |
+            Q(history_change_reason__isnull=False) |
+            Q(history_type__in=['+', '-'])
+        )
+    )
+
     view_title = "Alle Aktivitäten"
 
-    # --- 1. USER-FILTER LOGIK (bleibt gleich) ---
+    # Filter: nur eigene Aktivitäten
     user_filter = request.GET.get('user')
     if user_filter == 'me' and request.user.is_authenticated:
         history_qs = history_qs.filter(history_user=request.user)
         view_title = "Meine Aktivitäten"
 
-    # --- 2. NEUE SORTIER-LOGIK ---
-    # Standard-Sortierung
-    sort_by = request.GET.get('sort', '-history_date') # Default: neueste zuerst
+    # Sortierung
+    sort_key = request.GET.get('sort', 'wann')
     sort_dir = request.GET.get('dir', 'desc')
 
-    # Mapping von URL-Parametern zu echten DB-Feldern, um Sicherheit zu gewährleisten
-    # und nach verknüpften Feldern zu sortieren (z.B. user__username).
     valid_sort_fields = {
         'wann': 'history_date',
         'wer': 'history_user__username',
@@ -257,42 +79,37 @@ def global_history(request):
         'status': 'status',
     }
 
-    # Hole den DB-Feldnamen aus unserem Mapping
-    db_field = valid_sort_fields.get(request.GET.get('sort'))
+    db_field = valid_sort_fields.get(sort_key, 'history_date')
 
-    if db_field:
-        # Wenn die Richtung 'desc' (absteigend) ist, fügen wir ein '-' vor den Feldnamen
-        if sort_dir == 'desc':
-            sort_by = f'-{db_field}'
-        else:
-            sort_by = db_field
-            
-        # Wende die Sortierung an
-        history_qs = history_qs.order_by(sort_by)
+    if sort_dir == 'desc':
+        order_by = f'-{db_field}'
+    else:
+        order_by = db_field
 
-    # Pagination: Zeige 50 Einträge pro Seite
+    history_qs = history_qs.order_by(order_by, '-history_id')
+
+    # Pagination
     paginator = Paginator(history_qs, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
-    # Baue einen String mit den aktuellen Query-Parametern für die Links im Template
-    # Wir schließen 'page' aus, da es von den Paginierungslinks selbst hinzugefügt wird.
+
     current_params = request.GET.copy()
-    if 'page' in current_params:
-        del current_params['page']
-    
-    # Aktuelle Sortierrichtung für die Links im Template bestimmen
-    # Wenn aktuell aufsteigend sortiert wird, soll der nächste Klick absteigend sein
+    current_params.pop('page', None)
+
     next_sort_dir = 'asc' if sort_dir == 'desc' else 'desc'
-    
-    return render(request, 'inventory/global_history.html', {
-        'page_obj': page_obj,
-        'view_title': view_title,
-        'current_sort': request.GET.get('sort'), # Welches Feld ist sortiert?
-        'current_dir': sort_dir,                 # In welche Richtung?
-        'next_sort_dir': next_sort_dir,          # Was ist die nächste Richtung?
-        'query_params': current_params.urlencode(), # z.B. "user=me&sort=wer&dir=asc"
-    })
+
+    return render(
+        request,
+        'inventory/global_history.html',
+        {
+            'page_obj': page_obj,
+            'view_title': view_title,
+            'current_sort': sort_key,
+            'current_dir': sort_dir,
+            'next_sort_dir': next_sort_dir,
+            'query_params': current_params.urlencode(),
+        },
+    )
 
 # View für die Changelog-Seite
 @login_required
@@ -433,8 +250,8 @@ class BoxDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Box
     template_name = 'inventory/box_detail.html'
     context_object_name = 'box'
-    slug_field = 'label'                # Name des Feldes in deinem Model (z.B. 'label' oder 'barcode')
-    slug_url_kwarg = 'label_id'         # Name des Parameters aus der urls.py (dort haben wir 'pk' genutzt)
+    slug_field = 'label'
+    slug_url_kwarg = 'label_id'
 
     def get_context_data(self, **kwargs):
         # 1. Rufe die Basis-Implementierung auf, um den Standard-Kontext zu erhalten
@@ -446,68 +263,113 @@ class BoxDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
         Category = self.model._meta.get_field('categories').related_model
 
         # 3. Hole die komplette Historie für diese Box, neueste zuerst
-        history_records = box.history.all().select_related('history_user').order_by('-history_date')
+        #    Liste erzwingen, damit Index-Zugriffe und len() effizient sind
+        history_records = list(
+            box.history.all()
+            .select_related('history_user')
+            .order_by('-history_date', '-history_id')
+        )
 
         # 4. Bereite die Daten so auf, wie das Template sie erwartet (mit Änderungsdetails)
         processed_history = []
+
         for i, record in enumerate(history_records):
-            changes_list = []
-            
-            if record.history_type == '~' and i + 1 < len(history_records):
-                prev_record = history_records[i + 1]
-                delta = record.diff_against(prev_record)
-                
-                for change in delta.changes:
-                    field_verbose_name = self.model._meta.get_field(change.field).verbose_name
-                    old_value = change.old
-                    new_value = change.new
 
-                    # --- START: Logik zur "Übersetzung" der Werte in Klarnamen ---
-                    if change.field == 'location':
-                        old_obj = Location.objects.filter(pk=old_value).first()
-                        new_obj = Location.objects.filter(pk=new_value).first()
-                        old_value = old_obj.name if old_obj else "---"
-                        new_value = new_obj.name if new_obj else "---"
-
-                    elif change.field == 'status':
-                        old_value = dict(self.model.STATUS_CHOICES).get(old_value, old_value)
-                        new_value = dict(self.model.STATUS_CHOICES).get(new_value, new_value)
-                    
-                    elif change.field == 'categories':
-                        # KORREKTUR: Wir extrahieren die 'category'-ID aus jedem Dictionary in der Liste
-                        old_ids = [item['category'] for item in old_value]
-                        new_ids = [item['category'] for item in new_value]
-                        
-                        # Jetzt können wir die DB-Abfrage mit den sauberen ID-Listen machen
-                        old_items = Category.objects.filter(pk__in=old_ids).values_list('name', flat=True)
-                        new_items = Category.objects.filter(pk__in=new_ids).values_list('name', flat=True)
-                        
-                        old_value = ", ".join(sorted(old_items)) or "Keine"
-                        new_value = ", ".join(sorted(new_items)) or "Keine"
-
-                    else: # Fallback für andere Felder wie 'description'
-                        old_value = old_value if old_value else "---"
-                        new_value = new_value if new_value else "---"
-                    # --- ENDE: Logik zur "Übersetzung" ---
-
-                    changes_list.append({
-                        'field': field_verbose_name,
-                        'old': old_value,
-                        'new': new_value,
-                    })
-
-            # 5. Filtere leere "System"-Einträge oder irrelevante Änderungen heraus
-            is_creation = record.history_type == '+'
-            is_deletion = record.history_type == '-'
-            is_meaningful_change = record.history_type == '~' and len(changes_list) > 0
-            
-            if record.history_user and (is_creation or is_deletion or is_meaningful_change):
+            # 4a. Einträge mit Text (history_change_reason) immer direkt übernehmen.
+            #     Das betrifft u. a.:
+            #     - "Bild hinzugefügt: ..."
+            #     - "Bild gelöscht: ..."
+            #     - "Kategorien hinzugefügt/entfernt: ..."
+            #     - "Status geändert: ..."
+            if record.history_change_reason:
                 processed_history.append({
                     'record': record,
-                    'changes': changes_list,
+                    'changes': [],  # Template zeigt dann nur den Text an
                 })
+                continue  # Für diese Einträge keine Feld-Diffs berechnen
 
-        # 6. Füge die aufbereiteten und gefilterten Verlaufsdaten zum Kontext hinzu
+            changes_list = []
+
+            # Nur bei Änderungs-Einträgen (~) Diffs berechnen
+            if record.history_type == '~' and i + 1 < len(history_records):
+                prev_record = history_records[i + 1]
+
+                try:
+                    delta = record.diff_against(prev_record)
+                except Exception:
+                    delta = None
+
+                if delta:
+                    for change in delta.changes:
+                        field_name = change.field
+
+                        # Feldnamen lesbar machen, wenn möglich
+                        try:
+                            field_verbose_name = self.model._meta.get_field(field_name).verbose_name
+                        except Exception:
+                            field_verbose_name = field_name
+
+                        old_value = change.old
+                        new_value = change.new
+
+                        # --- START: Logik zur "Übersetzung" der Werte in Klarnamen ---
+                        if field_name == 'location':
+                            old_obj = Location.objects.filter(pk=old_value).first()
+                            new_obj = Location.objects.filter(pk=new_value).first()
+                            old_value = old_obj.name if old_obj else "---"
+                            new_value = new_obj.name if new_obj else "---"
+
+                        elif field_name == 'status':
+                            choices = dict(self.model.STATUS_CHOICES)
+                            old_value = choices.get(old_value, old_value)
+                            new_value = choices.get(new_value, new_value)
+
+                        elif field_name == 'categories':
+                            # Listen mit Dicts -> nur die IDs extrahieren
+                            old_ids = [item['category'] for item in (old_value or [])]
+                            new_ids = [item['category'] for item in (new_value or [])]
+
+                            old_items = Category.objects.filter(pk__in=old_ids).values_list('name', flat=True)
+                            new_items = Category.objects.filter(pk__in=new_ids).values_list('name', flat=True)
+
+                            old_value = ", ".join(sorted(old_items)) or "Keine"
+                            new_value = ", ".join(sorted(new_items)) or "Keine"
+
+                        else:  # Fallback für andere Felder wie 'description'
+                            old_value = old_value if old_value else "---"
+                            new_value = new_value if new_value else "---"
+                        # --- ENDE: Logik zur "Übersetzung" ---
+
+                        changes_list.append(
+                            {
+                                'field': field_verbose_name,
+                                'old': old_value,
+                                'new': new_value,
+                            }
+                        )
+
+            # 5. Anzeige-Logik:
+            #    - Erstellen/Löschen immer
+            #    - Änderungen nur, wenn es tatsächlich Feld-Änderungen gibt
+            has_diffs = len(changes_list) > 0
+            is_creation = record.history_type == '+'
+            is_deletion = record.history_type == '-'
+
+            include = (
+                is_creation or
+                is_deletion or
+                has_diffs
+            )
+
+            if include:
+                processed_history.append(
+                    {
+                        'record': record,
+                        'changes': changes_list,
+                    }
+                )
+
+        # 6. Füge die aufbereiteten Verlaufsdaten zum Kontext hinzu
         context['history_data'] = processed_history
         
         # 7. Gib den vollständigen Kontext zurück
@@ -518,13 +380,48 @@ class BoxCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Box
     form_class = BoxForm
     template_name = 'inventory/box_form.html'
-    success_url = reverse_lazy('dashboard')
-    raise_exception = True
+
+    def form_valid(self, form):
+        # WICHTIG: User an die Box kleben, bevor gespeichert wird
+        form.instance._history_user = self.request.user
+        # Erst Box speichern
+        response = super().form_valid(form)
+
+        # Sicherstellen, dass auch das gespeicherte Objekt den User trägt,
+        # bevor wir Bilder anlegen (für die Bild-Logs)
+        self.object._history_user = self.request.user
+
+        # Dann hochgeladene Bilder anlegen
+        uploaded_files = self.request.FILES.getlist('image_upload')
+        for file in uploaded_files:
+            BoxImage.objects.create(box=self.object, image=file)
+
+        return response
+
+    def get_success_url(self):
+        # Nach dem Anlegen zur Detailansicht der neuen Box
+        return reverse_lazy('box_detail', kwargs={'label_id': self.object.label})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['box_detail'] = "Neue Box erstellen"
-        return context
+        context['box_detail'] = "Neue Box anlegen"
+        return context    
+
+class BoxImageDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    permission_required = 'inventory.change_box'
+    model = BoxImage
+    template_name = 'inventory/image_confirm_delete.html'
+    context_object_name = 'image'
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # User an die verknüpfte Box hängen, damit das Signal ihn sieht
+        self.object.box._history_user = request.user
+        return super().delete(request, *args, **kwargs)
+
+    def get_success_url(self):
+        # Nach dem Löschen zurück zur Bearbeitungsseite der zugehörigen Box
+        return reverse_lazy('box_edit', kwargs={'label_id': self.object.box.label})
 
 class BoxUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     permission_required = 'inventory.change_box'
@@ -534,6 +431,22 @@ class BoxUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     success_url = reverse_lazy('dashboard')
     slug_field = 'label' 
     slug_url_kwarg = 'label_id'
+
+    def form_valid(self, form):
+        # User an die Box hängen
+        form.instance._history_user = self.request.user
+        # Zuerst die Standard-Aktion ausführen (Box-Objekt speichern)
+        response = super().form_valid(form)
+
+        # User auch am gespeicherten Objekt setzen (für Bild-Logs)
+        self.object._history_user = self.request.user
+
+        # Jetzt die hochgeladenen Bilder verarbeiten
+        uploaded_files = self.request.FILES.getlist('image_upload')
+        for file in uploaded_files:
+            BoxImage.objects.create(box=self.object, image=file)
+
+        return response
 
     def get_success_url(self):
         # Nach dem Speichern zur Detailseite der gerade bearbeiteten Box weiterleiten
@@ -551,3 +464,9 @@ class BoxDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     success_url = reverse_lazy('dashboard')
     slug_field = 'label' 
     slug_url_kwarg = 'label_id'
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # User an die Box hängen, bevor gelöscht wird
+        self.object._history_user = request.user
+        return super().delete(request, *args, **kwargs)

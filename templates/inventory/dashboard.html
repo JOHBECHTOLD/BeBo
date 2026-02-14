@@ -4,14 +4,27 @@
 {% block content %}
 <div class="row mb-4 align-items-center">
     <div class="col">
-        <h1 class="h3 text-bebo">Meine Boxen <span class="badge bg-secondary fs-6 align-middle">{{ total_count }}</span></h1>
+        <h1 class="h3 text-bebo">
+            Meine Boxen
+            <span class="badge bg-secondary fs-6 align-middle">{{ total_count }}</span>
+        </h1>
     </div>
-    <!-- Nur User und Master-User sehen den "Neu"-Button -->
-    {% if perms.inventory.add_box %}
-    <div class="col-auto">
-        <a href="{% url 'box_new' %}" class="btn btn-bebo"><i class="bi bi-plus-lg"></i> Neu</a>
+
+    <div class="col-auto d-flex gap-2">
+        {# Button zum Zurücksetzen der Filter – nur anzeigen, wenn überhaupt Filter/Suche aktiv sind #}
+        {% if request.GET %}
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg"></i> Filter zurücksetzen
+            </a>
+        {% endif %}
+
+        {# Nur User und Master-User sehen den "Neu"-Button #}
+        {% if perms.inventory.add_box %}
+            <a href="{% url 'box_new' %}" class="btn btn-bebo">
+                <i class="bi bi-plus-lg"></i> Neu
+            </a>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 
 <!-- Suchfeld -->
@@ -29,12 +42,15 @@
                     placeholder="Suche nach Inhalt, Nummer oder Ort..." 
                     value="{{ search_query }}"> <!-- Zeigt den aktuellen Suchbegriff an -->
         
-                <button type="submit" class="btn btn-bebo">Suchen</button>
-        
-                <!-- Optional: Button zum Löschen der Suche -->
-                {% if search_query or request.GET.location or request.GET.category %}
-                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">X</a>
+                {# Clear-Button direkt neben dem Eingabefeld, links vom Such-Button #}
+                {% if search_query or request.GET.location or request.GET.category or request.GET.status %}
+                    <a href="{% url 'dashboard' %}"
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
                 {% endif %}
+
+                <button type="submit" class="btn btn-bebo">Suchen</button>
             </div>
         </form>
     </div>

@@ -21,7 +21,7 @@
 <div class="card shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover table-striped mb-0 align-middle">
+            <table class="table table-hover table-striped mb-0">
                 <thead>
                   <tr>
                         <th>
@@ -31,7 +31,7 @@
                             {% else %}
                                 {% url_replace sort='wann' dir='asc' as sort_url %}
                             {% endif %}
-                            <a href="?{{ sort_url }}">
+                            <a href="?{{ sort_url }}" class="text-bebo text-decoration-none">
                                 Wann
                                 {% if current_sort == 'wann' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                             </a>
@@ -42,7 +42,7 @@
                             {% else %}
                                 {% url_replace sort='wer' dir='asc' as sort_url %}
                             {% endif %}
-                            <a href="?{{ sort_url }}">
+                            <a href="?{{ sort_url }}" class="text-bebo text-decoration-none">
                                 Wer
                                 {% if current_sort == 'wer' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                             </a>
@@ -53,7 +53,7 @@
                             {% else %}
                                 {% url_replace sort='aktion' dir='asc' as sort_url %}
                             {% endif %}
-                            <a href="?{{ sort_url }}">
+                            <a href="?{{ sort_url }}" class="text-bebo text-decoration-none">
                                 Aktion
                                 {% if current_sort == 'aktion' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                             </a>
@@ -64,7 +64,7 @@
                             {% else %}
                                 {% url_replace sort='box' dir='asc' as sort_url %}
                             {% endif %}
-                            <a href="?{{ sort_url }}">
+                            <a href="?{{ sort_url }}" class="text-bebo text-decoration-none">
                                 Box
                                 {% if current_sort == 'box' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                             </a>
@@ -75,7 +75,7 @@
                             {% else %}
                                 {% url_replace sort='lagerort' dir='asc' as sort_url %}
                             {% endif %}
-                            <a href="?{{ sort_url }}">
+                            <a href="?{{ sort_url }}" class="text-bebo text-decoration-none">
                                 Lagerort
                                 {% if current_sort == 'lagerort' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                             </a>
@@ -86,7 +86,7 @@
                             {% else %}
                                 {% url_replace sort='status' dir='asc' as sort_url %}
                             {% endif %}
-                            <a href="?{{ sort_url }}">
+                            <a href="?{{ sort_url }}" class="text-bebo text-decoration-none">
                                 Status
                                 {% if current_sort == 'status' %}<i class="bi bi-arrow-{% if current_dir == 'asc' %}up{% else %}down{% endif %}"></i>{% endif %}
                             </a>
@@ -111,11 +111,25 @@
                         <!-- Aktion (Übersetzung der Codes) -->
                         <td>
                             {% if h.history_type == '+' %}
-                                <span class="badge bg-success">Erstellt</span>
+                                <span class="badge bg-success me-1">Erstellt</span>
+
                             {% elif h.history_type == '-' %}
-                                <span class="badge bg-danger">Gelöscht</span>
+                                <span class="badge bg-danger me-1">Gelöscht</span>
+
                             {% else %}
-                                <span class="badge bg-primary">Geändert</span>
+                                <span class="badge bg-bebo me-1">Geändert</span>
+                            {% endif %}
+
+                            {% if h.history_change_reason %}
+                                <!-- Konkreter Text wie "Status geändert …" oder "Bild gelöscht …" -->
+                                <div class="small mt-1 text-break">
+                                    {{ h.history_change_reason }}
+                                </div>
+                            {% elif h.history_type == '~' %}
+                                <!-- Fallback, falls kein Reason gesetzt ist -->
+                                <div class="small mt-1 text-muted">
+                                    Details nicht verfügbar
+                                </div>
                             {% endif %}
                         </td>
                         
@@ -124,7 +138,10 @@
                             {% if h.history_type == '-' %}
                                  <span class="text-decoration-line-through text-muted">{{ h.label|format_barcode }}</span>
                             {% else %}
-                                <a href="{% url 'box_detail' h.label %}" class="text-decoration-none fw-bold">{{ h.label|format_barcode }}</a>
+                                <a href="{% url 'box_detail' h.label %}"
+                                    class="text-bebo text-decoration-none fw-bold">
+                                        {{ h.label|format_barcode }}
+                                </a>
                             {% endif %}
                         </td>
                         

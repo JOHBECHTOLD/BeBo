@@ -1,6 +1,7 @@
 from django.db import models
 from simple_history.models import HistoricalRecords
 from django.core.exceptions import ValidationError
+from simple_history.utils import update_change_reason
 
 # --- Hilfsfunktionen (Deine Prüfziffern-Logik) ---
 
@@ -80,22 +81,37 @@ class Box(models.Model):
         ('EXT', 'Extern'),
     ]
 
-    # Barcode ist der Primärschlüssel (eindeutig)
     label = models.CharField("Barcode (94...)", max_length=20, unique=True, validators=[validate_barcode])
-    
     location = models.ForeignKey(Location, on_delete=models.PROTECT, verbose_name="Lagerort")
     status = models.CharField("Status", max_length=10, choices=STATUS_CHOICES, default='STORED')
-    
     description = models.TextField("Inhalt / Beschreibung", blank=True)
     categories = models.ManyToManyField(Category, blank=True, verbose_name="Kategorien")
-    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    # Das Audit-Log (Wer hat was geändert?)
-    history = HistoricalRecords(
-        m2m_fields=[categories],
-    )
+    history = HistoricalRecords(m2m_fields=[categories])
+
+    def save(self, *args, **kwargs):
+        """
+        Ergänzt bei Status-Änderungen einen verständlichen History-Text.
+        """
+        change_reason = None
+
+        if self.pk:  # nur bei Updates vergleichen
+            try:
+                old = Box.objects.get(pk=self.pk)
+            except Box.DoesNotExist:
+                old = None
+
+            if old and old.status != self.status:
+                old_status = old.get_status_display()
+                new_status = self.get_status_display()
+                change_reason = f"Status geändert: {old_status} → {new_status}"
+
+        # Erst das eigentliche Speichern (hier legt simple_history den Eintrag an)
+        super().save(*args, **kwargs)
+        
+        if change_reason:
+            update_change_reason(self, change_reason)
 
     def __str__(self):
         return f"Box {self.label} ({self.location})"

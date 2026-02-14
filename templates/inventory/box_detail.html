@@ -105,24 +105,31 @@
                                                 <span class="badge bg-danger">Gelöscht</span>
                                             
                                             {% else %}
-                                                <span class="badge bg-primary mb-1">Geändert</span>
-                                                
-                                                <!-- Die Details als kleine Liste -->
+                                                <span class="badge bg-bebo mb-1">Geändert</span>
+
                                                 {% if item.changes %}
-                                                    <ul class="list-unstyled mb-0 small border-start border-3 ps-2 mt-1">
-                                                    {% for change in item.changes %}
-                                                        <li>
-                                                            <strong>{{ change.field }}:</strong> 
-                                                            <span class="text-muted text-decoration-line-through">{{ change.old }}</span> 
-                                                            &rarr; 
-                                                            <span class="fw-bold">{{ change.new }}</span>
-                                                        </li>
-                                                    {% endfor %}
-                                                    </ul>
-                                                {% else %}
-                                                    <div class="small text-muted fst-italic">(Keine Felder geändert)</div>
-                                                {% endif %}
+                                                <!-- Feld-Änderungen als Liste -->
+                                                <ul class="list-unstyled mb-0 small border-start border-3 ps-2 mt-1">
+                                                {% for change in item.changes %}
+                                                    <li>
+                                                        <strong>{{ change.field }}:</strong> 
+                                                        <span class="text-muted text-decoration-line-through">{{ change.old }}</span> 
+                                                        &rarr; 
+                                                        <span class="fw-bold">{{ change.new }}</span>
+                                                    </li>
+                                                {% endfor %}
+                                                </ul>
+
+                                            {% elif item.record.history_change_reason %}
+                                                <!-- Manuelle Einträge wie "📸 Bild hinzugefügt ..." -->
+                                                <div class="small mt-1">
+                                                    {{ item.record.history_change_reason }}
+                                                </div>
+
+                                            {% else %}
+                                                <div class="small text-muted fst-italic">(Keine Felder geändert)</div>
                                             {% endif %}
+                                        {% endif %}
                                         </td>
                                     </tr>
                                     {% empty %}
