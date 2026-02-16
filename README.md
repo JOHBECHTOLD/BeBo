@@ -65,12 +65,13 @@ docker compose exec web python manage.py migrate
 docker compose exec web python manage.py createsuperuser
 
 # Static Files sammeln
-docker compose exec web python manage.py collectstatic --noinput ```
+docker compose exec web python manage.py collectstatic --noinput
 Zugriff
 Lokal: http://localhost:8000
 Admin: http://localhost:8000/admin
 ⚙️ Konfiguration
 Umgebungsvariablen (.env)
+env
 
 # Django
 SECRET_KEY=dein-geheimer-key-hier
@@ -87,9 +88,11 @@ DB_PORT=5432
 # CSRF (für HTTPS)
 CSRF_TRUSTED_ORIGINS=https://deine-domain.de
 Secret Key generieren
+Bash
 
 docker compose exec web python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 🗂️ Projektstruktur
+text
 
 BeBo/
 ├── bebo_core/          # Django Projekt-Konfiguration
@@ -180,6 +183,7 @@ Prerequisites
 Docker & Docker Compose
 Git
 Quick Start
+Bash
 
 # Clone repository
 git clone https://github.com/JOHBECHTOLD/BeBo.git
@@ -203,6 +207,7 @@ Local: http://localhost:8000
 Admin: http://localhost:8000/admin
 ⚙️ Configuration
 Environment Variables (.env)
+env
 
 # Django
 SECRET_KEY=your-secret-key-here
@@ -219,9 +224,11 @@ DB_PORT=5432
 # CSRF (for HTTPS)
 CSRF_TRUSTED_ORIGINS=https://your-domain.com
 Generate Secret Key
+Bash
 
 docker compose exec web python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 🗂️ Project Structure
+text
 
 BeBo/
 ├── bebo_core/          # Django project configuration
