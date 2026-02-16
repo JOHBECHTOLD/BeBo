@@ -1,9 +1,39 @@
+# Python
 *.pyc
 __pycache__
+*.py[cod]
+*$py.class
+
+# Django
 db.sqlite3
+*.log
+local_settings.py
+
+# Environments - NIEMALS committen!
 .env
-.DS_Store
+.env.production
+.env.dev
+*.env
+
+# Static & Media (werden beim Deploy generiert)
 /media/
 /static/
+/staticfiles/
+
+# Database Backups
+*.sql
+*.dump
+*.tar.gz
+
+# IDE
+.DS_Store
 .vscode/
-.env
+.idea/
+*.swp
+*.swo
+
+# Docker (optional - manche committen docker-compose.yml)
+# docker-compose.override.yml
+
+# OS
+Thumbs.db

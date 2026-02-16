@@ -160,5 +160,5 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"                 # 1.6.0
 
 
 # Versionierung
-BEBO_VERSION = '1.6.3'
+BEBO_VERSION = '1.6.4'
 print(f"### BEBO VERSION GELADEN: {BEBO_VERSION} ###")

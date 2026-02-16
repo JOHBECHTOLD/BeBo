@@ -7,6 +7,24 @@
 
 <h1 class="h2 mb-4">Changelog & Release Notes</h1>
 
+<!-- v1.6.4 -->
+<div class="card mb-3 shadow-sm">
+    <div class="card-header fw-bold">
+        Version 1.6.4 <span class="badge bg-secondary ms-2">Patch</span>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Production-Deployment-Workflow</h5>
+        <ul class="list-unstyled ps-3">
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Deployment:</strong> Automatisiertes Deploy-Script für Production-Server implementiert.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Sicherheit:</strong> DEBUG=False und sicherer SECRET_KEY für Production-Umgebung.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Performance:</strong> Gunicorn WSGI-Server statt Development-Server (3 Worker).</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Monitoring:</strong> Health-Checks für Web- und DB-Container aktiviert.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Backup:</strong> Automatische Datenbank-Sicherung bei jedem Deployment.</li>
+            <li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>DevOps:</strong> .gitignore erweitert (Secrets, Backups, Static-Files).</li>
+        </ul>
+    </div>
+</div>
+
 <!-- v1.6.3 -->
 <div class="card mb-3 shadow-sm">
     <div class="card-header fw-bold">
