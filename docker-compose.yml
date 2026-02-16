@@ -16,10 +16,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=bebo_db
-      - POSTGRES_USER=bebo_user
-      - POSTGRES_PASSWORD=bebo_password
-    restart: always
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    env_file:
+      - .env
 
 volumes:
   postgres_data:
