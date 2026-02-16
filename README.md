@@ -65,7 +65,7 @@ docker compose exec web python manage.py migrate
 docker compose exec web python manage.py createsuperuser
 
 # Static Files sammeln
-docker compose exec web python manage.py collectstatic --noinput
+docker compose exec web python manage.py collectstatic --noinput```
 Zugriff
 Lokal: http://localhost:8000
 Admin: http://localhost:8000/admin
