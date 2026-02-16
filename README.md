@@ -1,6 +1,6 @@
 # 📦 BeBo — Box-Bestand-Organizer
 
-*🇩🇪 Deutsche Version | 🇬🇧 [English version below](#-bebo--box-inventory-organizer-1)*
+*🇩🇪 Deutsche Version | 🇬🇧 [English version below](#-bebo--box-inventory-organizer)*
 
 Eine Django-basierte Webanwendung zur Verwaltung von Lagerboxen und deren Inhalten. Perfekt für Keller, Dachböden, Lagerräume oder überall dort, wo du den Überblick behalten willst.
 
@@ -8,7 +8,7 @@ Eine Django-basierte Webanwendung zur Verwaltung von Lagerboxen und deren Inhalt
 ![Django](https://img.shields.io/badge/Django-5.x-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
 ![Docker](https://img.shields.io/badge/Docker-Compose-blue)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey)
 
 ---
 
@@ -48,6 +48,7 @@ Eine Django-basierte Webanwendung zur Verwaltung von Lagerboxen und deren Inhalt
 
 ### Schnellstart
 
+```bash
 # Repository klonen
 git clone https://github.com/JOHBECHTOLD/BeBo.git
 cd BeBo
@@ -65,16 +66,11 @@ docker compose exec web python manage.py createsuperuser
 
 # Static Files sammeln
 docker compose exec web python manage.py collectstatic --noinput
-
-
 Zugriff
 Lokal: http://localhost:8000
 Admin: http://localhost:8000/admin
-
-
 ⚙️ Konfiguration
 Umgebungsvariablen (.env)
-
 
 # Django
 SECRET_KEY=dein-geheimer-key-hier
@@ -90,11 +86,10 @@ DB_PORT=5432
 
 # CSRF (für HTTPS)
 CSRF_TRUSTED_ORIGINS=https://deine-domain.de
-
-
 Secret Key generieren
-docker compose exec web python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 
+docker compose exec web python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+🗂️ Projektstruktur
 
 BeBo/
 ├── bebo_core/          # Django Projekt-Konfiguration
@@ -114,54 +109,53 @@ BeBo/
 ├── deploy.sh           # Deployment Script
 ├── requirements.txt
 └── README.md
-
-
-Siehe Changelog in der Anwendung oder templates/inventory/changelog.html.
+📋 Changelog
+Siehe Changelog in der Anwendung.
 
 Aktuelle Version: 1.6.4
-Production-Deployment-Workflow
-Gunicorn WSGI-Server
-Health-Checks für Container
-Automatische Backups
+✅ Production-Deployment-Workflow
+✅ Gunicorn WSGI-Server
+✅ Health-Checks für Container
+✅ Automatische Backups
+📄 Lizenz
+Dieses Projekt steht unter der Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Lizenz (CC BY-NC-SA 4.0).
+
+Was bedeutet das?
+✅ Du darfst:
+
+Das Projekt für private, nicht-kommerzielle Zwecke nutzen
+Den Code ansehen, lernen und studieren
+Eigene Anpassungen vornehmen
+Das Projekt mit anderen teilen
+🚫 Du darfst NICHT:
+
+Das Projekt oder Teile davon kommerziell nutzen oder verkaufen
+Es in kommerzielle Produkte einbinden ohne Genehmigung
+📝 Du musst:
+
+Den ursprünglichen Autor (Johannes Bechtold) nennen
+Einen Link zu dieser Lizenz beifügen
+Änderungen kennzeichnen
+Abgeleitete Werke unter derselben Lizenz teilen
+Vollständige Lizenz: CC BY-NC-SA 4.0
 
 🙏 Danksagungen
 Django
 Bootstrap
 Docker
+👤 Autor
+Johannes Bechtold — @JOHBECHTOLD
 
+📦 BeBo — Box Inventory Organizer
+🇬🇧 English Version | 🇩🇪 Deutsche Version oben
 
+A Django-based web application for managing storage boxes and their contents. Perfect for basements, attics, storage rooms, or anywhere you need to keep track of your stuff.
 
-## 📄 Lizenz
-
-Dieses Projekt steht unter der **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International Lizenz** (CC BY-NC-SA 4.0).
-
-### Was bedeutet das?
-
-✅ **Du darfst:**
-- Das Projekt für private, nicht-kommerzielle Zwecke nutzen
-- Den Code ansehen, lernen und studieren
-- Eigene Anpassungen vornehmen
-- Das Projekt mit anderen teilen
-
-🚫 **Du darfst NICHT:**
-- Das Projekt oder Teile davon kommerziell nutzen oder verkaufen
-- Es in kommerzielle Produkte einbinden ohne Genehmigung
-
-📝 **Du musst:**
-- Den ursprünglichen Autor (Johannes Bechtold) nennen
-- Einen Link zu dieser Lizenz beifügen
-- Änderungen kennzeichnen
-- Abgeleitete Werke unter derselben Lizenz teilen
-
-### Kommerzielle Nutzung
-
-Für kommerzielle Nutzungsanfragen kontaktiere mich bitte über GitHub.
-
-Vollständige Lizenz: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.de)
-
----
-
-___________________________________________________________________________
+Python
+Django
+PostgreSQL
+Docker
+License
 
 ✨ Features
 📦 Box Management — Create, edit, and search storage boxes
@@ -172,8 +166,6 @@ ___________________________________________________________________________
 🔍 Search — Fast full-text search across all boxes
 👥 User Authentication — Login-protected access
 📱 Responsive Design — Works on desktop and mobile devices
-
-
 🛠️ Tech Stack
 Component	Technology
 Backend	Python 3.11, Django 5.x
@@ -183,14 +175,11 @@ Static Files	WhiteNoise
 Frontend	Bootstrap 5, Crispy Forms
 Container	Docker & Docker Compose
 Versioning	django-simple-history
-
-
 🚀 Installation
 Prerequisites
 Docker & Docker Compose
 Git
 Quick Start
-
 
 # Clone repository
 git clone https://github.com/JOHBECHTOLD/BeBo.git
@@ -209,14 +198,9 @@ docker compose exec web python manage.py createsuperuser
 
 # Collect static files
 docker compose exec web python manage.py collectstatic --noinput
-
-
 Access
 Local: http://localhost:8000
 Admin: http://localhost:8000/admin
-
-
-
 ⚙️ Configuration
 Environment Variables (.env)
 
@@ -234,13 +218,11 @@ DB_PORT=5432
 
 # CSRF (for HTTPS)
 CSRF_TRUSTED_ORIGINS=https://your-domain.com
-
-
+Generate Secret Key
 
 docker compose exec web python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-
-
 🗂️ Project Structure
+
 BeBo/
 ├── bebo_core/          # Django project configuration
 │   ├── settings.py
@@ -259,51 +241,39 @@ BeBo/
 ├── deploy.sh           # Deployment script
 ├── requirements.txt
 └── README.md
-
-
-
 📋 Changelog
-See Changelog in the application or templates/inventory/changelog.html.
+See Changelog in the application.
 
 Current Version: 1.6.4
-Production deployment workflow
-Gunicorn WSGI server
-Health checks for containers
-Automatic backups
+✅ Production deployment workflow
+✅ Gunicorn WSGI server
+✅ Health checks for containers
+✅ Automatic backups
+📄 License
+This project is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
 
+What does this mean?
+✅ You may:
+
+Use the project for private, non-commercial purposes
+View, learn from, and study the code
+Make your own modifications
+Share the project with others
+🚫 You may NOT:
+
+Use the project or parts of it commercially or sell it
+Integrate it into commercial products without permission
+📝 You must:
+
+Credit the original author (Johannes Bechtold)
+Provide a link to this license
+Indicate if changes were made
+Share derivative works under the same license
+Full License: CC BY-NC-SA 4.0
 
 🙏 Acknowledgments
 Django
 Bootstrap
 Docker
-
-
-## 📄 License
-
-This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License** (CC BY-NC-SA 4.0).
-
-### What does this mean?
-
-✅ **You may:**
-- Use the project for private, non-commercial purposes
-- View, learn from, and study the code
-- Make your own modifications
-- Share the project with others
-
-🚫 **You may NOT:**
-- Use the project or parts of it commercially or sell it
-- Integrate it into commercial products without permission
-
-📝 **You must:**
-- Credit the original author (Johannes Bechtold)
-- Provide a link to this license
-- Indicate if changes were made
-- Share derivative works under the same license
-
-### Commercial Use
-
-For commercial use inquiries, please contact me via GitHub.
-
-Full License: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode)
-
----
+👤 Author
+Johannes Bechtold — @JOHBECHTOLD
