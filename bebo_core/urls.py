@@ -1,7 +1,7 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
-from django.conf.urls.static import static
+from django.views.static import serve
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -13,4 +13,7 @@ urlpatterns = [
 
 # Media-Dateien servieren (auch in Production)
 # In Production übernimmt normalerweise Nginx/Caddy, aber für kleine Apps ist das OK
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Nutzt django.views.static.serve statt static() - funktioniert auch mit Gunicorn
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
