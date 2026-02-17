@@ -290,6 +290,16 @@
     </script>
     <!-- Lightbox für Bildergalerie -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fslightbox/3.0.9/index.min.js"></script>
+
+    <!-- fslightbox neu initialisieren (Fix für einzelne Bilder) -->
+    <script>
+        // Warten bis Seite geladen ist, dann Lightbox refreshen
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof refreshFsLightbox === 'function') {
+                refreshFsLightbox();
+            }
+        });
+    </script>
 </body>
   <!-- Footer -->
   <footer class="py-4 mt-5 border-top">
