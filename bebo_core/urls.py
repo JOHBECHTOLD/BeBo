@@ -11,6 +11,6 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
 ]
 
-# Im Debug-Modus Bilder ausliefern
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Media-Dateien servieren (auch in Production)
+# In Production übernimmt normalerweise Nginx/Caddy, aber für kleine Apps ist das OK
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
