@@ -1,6 +1,6 @@
 # 📦 BeBo — Box-Bestand-Organizer
 
-*🇩🇪 Deutsche Version | 🇬🇧 English version below*
+*🇩🇪 Deutsche Version | [🇬🇧 English version below](#-english-version)*
 
 Eine moderne Webanwendung zur Verwaltung von Lagerboxen und deren Inhalten – entwickelt mit **Python 3.11** und **Django 5**.
 Perfekt für Keller, Dachboden, Lagerraum oder überall dort, wo Ordnung dauerhaft bleiben soll.
