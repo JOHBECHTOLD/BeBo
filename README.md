@@ -200,6 +200,7 @@ Dieses Projekt steht unter der
 ---
 
 *🇬🇧 English Version | 🇩🇪 [German version above](#-bebo--box-bestand-organizer)*
+<a id="english-version"></a>
 
 # 📦 BeBo — Box Inventory Organizer
 
