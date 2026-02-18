@@ -1,5 +1,3 @@
----
-
 # 📦 BeBo — Box-Bestand-Organizer
 
 *🇩🇪 Deutsche Version | 🇬🇧 English version below*
