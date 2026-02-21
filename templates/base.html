@@ -9,6 +9,7 @@
     <link rel="icon" type="image/png" href="{% static 'icon.png' %}">
     <link rel="apple-touch-icon" href="{% static 'icon.png' %}">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- Script zum Erkennen des System-Dark-Modes (muss vor CSS laufen um Flackern zu verhindern) -->
@@ -289,15 +290,17 @@
         });
     </script>
     <!-- Lightbox für Bildergalerie -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fslightbox/3.0.9/index.min.js"></script>
-
-    <!-- fslightbox neu initialisieren (Fix für einzelne Bilder) -->
+    <!-- GLightbox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+    <!-- GLightbox JS -->
+    <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
     <script>
-        // Warten bis Seite geladen ist, dann Lightbox refreshen
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof refreshFsLightbox === 'function') {
-                refreshFsLightbox();
-            }
+            GLightbox({
+                selector: '[data-fslightbox]',  // Nutzt deine bestehenden Attribute
+                touchNavigation: true,
+                loop: true
+            });
         });
     </script>
 </body>
